@@ -5,6 +5,7 @@ from src.app.models.employes import Employee
 from src.app.models.leave import Leave
 from src.app.models.leave_balance import LeaveBalance
 from src.app.models.leave_policy import LeavePolicy
+from src.app.models.employee_history import EmployeeHistory
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool

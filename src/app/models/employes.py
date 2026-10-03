@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
 from src.app.db.database import Base
@@ -7,9 +7,16 @@ from src.app.db.database import Base
 class Employee(Base):
     __tablename__ = "employees"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    name = Column(String, nullable=False)
+    name = Column(
+        String,
+        nullable=False
+    )
 
     email = Column(
         String,
@@ -18,7 +25,51 @@ class Employee(Base):
         index=True
     )
 
-    department = Column(String, nullable=False)
+    department = Column(
+        String,
+        nullable=False
+    )
+
+    designation = Column(
+        String,
+        nullable=True
+    )
+
+    joining_date = Column(
+        Date,
+        nullable=True
+    )
+
+    leaving_date = Column(
+        Date,
+        nullable=True
+    )
+
+    termination_reason = Column(
+        String,
+        nullable=True
+    )
+
+    employment_status = Column(
+        String,
+        nullable=False,
+        default="ACTIVE"
+    )
+
+    phone = Column(
+        String,
+        nullable=True
+    )
+
+    emergency_contact_name = Column(
+        String,
+        nullable=True
+    )
+
+    emergency_contact_phone = Column(
+        String,
+        nullable=True
+    )
 
     manager_id = Column(
         Integer,
@@ -51,4 +102,9 @@ class Employee(Base):
     hr = relationship(
         "HR",
         back_populates="employees"
+    )
+
+    history = relationship(
+        "EmployeeHistory",
+        back_populates="employee"
     )

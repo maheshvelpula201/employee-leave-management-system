@@ -6,6 +6,9 @@ from src.app.models.leave import Leave
 from src.app.models.leave_balance import LeaveBalance
 from src.app.models.leave_policy import LeavePolicy
 from src.app.models.employee_history import EmployeeHistory
+from src.app.models.company import Company
+from src.app.models.user import User
+from src.app.models.invitation import Invitation
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool

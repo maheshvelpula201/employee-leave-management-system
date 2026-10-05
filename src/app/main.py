@@ -8,6 +8,8 @@ from src.app.api.hr import router as hr_router
 from src.app.api.registration import router as registration_router
 from src.app.api.company import router as company_router
 from src.app.api.admin import router as admin_router
+from src.app.api.auth import router as auth_router
+from src.app.api.test_auth import router as test_auth_router
 
 
 app = FastAPI(
@@ -24,6 +26,8 @@ app.include_router(hr_router)
 app.include_router(registration_router)
 app.include_router(company_router)
 app.include_router(admin_router)
+app.include_router(auth_router)
+app.include_router(test_auth_router)
 
 
 @app.get("/")

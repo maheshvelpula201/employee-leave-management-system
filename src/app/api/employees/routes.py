@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.app.db.database import get_db
 from src.app.models.employes import Employee
+from src.app.core.dependencies import get_current_user
 
 from src.app.schemas.employee import (
     EmployeeCreate,
@@ -28,7 +29,8 @@ router = APIRouter(
 @router.post("/")
 def create_employee(
     employee: EmployeeCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     new_employee = Employee(
         name=employee.name,
@@ -54,7 +56,8 @@ def create_employee(
 
 @router.get("/")
 def get_all_employees(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     return db.query(Employee).all()
 
@@ -62,7 +65,8 @@ def get_all_employees(
 @router.get("/{employee_id}")
 def get_employee(
     employee_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     employee = (
         db.query(Employee)
@@ -83,7 +87,8 @@ def get_employee(
 def update_employee(
     employee_id: int,
     employee_data: EmployeeUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     employee = (
         db.query(Employee)
@@ -130,7 +135,8 @@ def update_employee(
 def assign_manager(
     employee_id: int,
     manager_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     employee = (
         db.query(Employee)
@@ -174,7 +180,8 @@ def assign_manager(
 def update_employee_status(
     employee_id: int,
     status: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     employee = (
         db.query(Employee)
@@ -221,7 +228,8 @@ def update_employee_status(
 def employee_exit(
     employee_id: int,
     exit_data: EmployeeExit,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     employee = (
         db.query(Employee)
@@ -270,7 +278,8 @@ def employee_exit(
 @router.get("/{employee_id}/history")
 def get_employee_history(
     employee_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     return get_employee_history_service(
         db,

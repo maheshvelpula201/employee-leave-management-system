@@ -10,6 +10,7 @@ from src.app.core.security import (
     JWT_SECRET_KEY,
     JWT_ALGORITHM
 )
+from src.app.core.tenant import set_current_company
 
 
 security = HTTPBearer()
@@ -19,14 +20,9 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
-    # 1. Get the JWT
-
     token = credentials.credentials
 
-    # 2. Verify and decode the JWT
-
     try:
-
         payload = jwt.decode(
             token,
             JWT_SECRET_KEY,
@@ -34,40 +30,30 @@ def get_current_user(
         )
 
     except jwt.ExpiredSignatureError:
-
         raise HTTPException(
             status_code=401,
             detail="Token has expired"
         )
 
     except jwt.InvalidTokenError:
-
         raise HTTPException(
             status_code=401,
             detail="Invalid token"
         )
 
-    # 3. Make sure this is an access token
-
     if payload.get("type") != "access":
-
         raise HTTPException(
             status_code=401,
             detail="Invalid access token"
         )
 
-    # 4. Get the user ID from the token
-
     user_id = payload.get("sub")
 
     if not user_id:
-
         raise HTTPException(
             status_code=401,
             detail="Invalid token payload"
         )
-
-    # 5. Find the actual user in the database
 
     user = (
         db.query(User)
@@ -76,21 +62,20 @@ def get_current_user(
     )
 
     if not user:
-
         raise HTTPException(
             status_code=401,
             detail="User not found"
         )
 
-    # 6. Check whether the account is still active
-
     if not user.is_active:
-
         raise HTTPException(
             status_code=401,
             detail="User account is inactive"
         )
 
-    # 7. Return the actual database user
+    set_current_company(
+        db,
+        user.company_id
+    )
 
     return user

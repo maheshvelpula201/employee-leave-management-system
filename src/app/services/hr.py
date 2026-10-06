@@ -16,11 +16,13 @@ from src.app.repositories.hr import (
 
 def create_hr_service(
     db: Session,
-    hr: HRCreate
+    hr: HRCreate,
+    company_id: int
 ):
     existing_hr = get_hr_by_email(
         db,
-        hr.email
+        hr.email,
+        company_id
     )
 
     if existing_hr:
@@ -32,21 +34,30 @@ def create_hr_service(
     return create_hr(
         db,
         hr.name,
-        hr.email
+        hr.email,
+        company_id
     )
 
 
-def get_all_hrs_service(db: Session):
-    return get_all_hrs(db)
+def get_all_hrs_service(
+    db: Session,
+    company_id: int
+):
+    return get_all_hrs(
+        db,
+        company_id
+    )
 
 
 def get_hr_by_id_service(
     db: Session,
-    hr_id: int
+    hr_id: int,
+    company_id: int
 ):
     hr = get_hr_by_id(
         db,
-        hr_id
+        hr_id,
+        company_id
     )
 
     if not hr:
@@ -61,11 +72,13 @@ def get_hr_by_id_service(
 def assign_employee_to_hr_service(
     db: Session,
     hr_id: int,
-    employee_id: int
+    employee_id: int,
+    company_id: int
 ):
     hr = get_hr_by_id(
         db,
-        hr_id
+        hr_id,
+        company_id
     )
 
     if not hr:
@@ -76,7 +89,10 @@ def assign_employee_to_hr_service(
 
     employee = (
         db.query(Employee)
-        .filter(Employee.id == employee_id)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == company_id
+        )
         .first()
     )
 
@@ -95,11 +111,13 @@ def assign_employee_to_hr_service(
 
 def get_employees_by_hr_service(
     db: Session,
-    hr_id: int
+    hr_id: int,
+    company_id: int
 ):
     hr = get_hr_by_id(
         db,
-        hr_id
+        hr_id,
+        company_id
     )
 
     if not hr:
@@ -110,5 +128,6 @@ def get_employees_by_hr_service(
 
     return get_employees_by_hr(
         db,
-        hr_id
+        hr_id,
+        company_id
     )

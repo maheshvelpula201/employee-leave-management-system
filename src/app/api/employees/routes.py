@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session
 
 from src.app.db.database import get_db
 from src.app.models.employes import Employee
-from src.app.core.dependencies import get_current_user
+from src.app.models.hr import HR
+
+from src.app.core.rbac import Permission
+from src.app.core.rbac_dependencies import require_permission
 
 from src.app.schemas.employee import (
     EmployeeCreate,
@@ -30,7 +33,11 @@ router = APIRouter(
 def create_employee(
     employee: EmployeeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.CREATE_EMPLOYEE
+        )
+    )
 ):
     new_employee = Employee(
         name=employee.name,
@@ -44,7 +51,8 @@ def create_employee(
         phone=employee.phone,
         emergency_contact_name=employee.emergency_contact_name,
         emergency_contact_phone=employee.emergency_contact_phone,
-        manager_id=employee.manager_id
+        manager_id=employee.manager_id,
+        company_id=current_user.company_id
     )
 
     db.add(new_employee)
@@ -57,20 +65,37 @@ def create_employee(
 @router.get("/")
 def get_all_employees(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.VIEW_EMPLOYEES
+        )
+    )
 ):
-    return db.query(Employee).all()
+    return (
+        db.query(Employee)
+        .filter(
+            Employee.company_id == current_user.company_id
+        )
+        .all()
+    )
 
 
 @router.get("/{employee_id}")
 def get_employee(
     employee_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.VIEW_EMPLOYEES
+        )
+    )
 ):
     employee = (
         db.query(Employee)
-        .filter(Employee.id == employee_id)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == current_user.company_id
+        )
         .first()
     )
 
@@ -88,11 +113,18 @@ def update_employee(
     employee_id: int,
     employee_data: EmployeeUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.UPDATE_EMPLOYEE
+        )
+    )
 ):
     employee = (
         db.query(Employee)
-        .filter(Employee.id == employee_id)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == current_user.company_id
+        )
         .first()
     )
 
@@ -136,11 +168,18 @@ def assign_manager(
     employee_id: int,
     manager_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.ASSIGN_EMPLOYEE_MANAGER
+        )
+    )
 ):
     employee = (
         db.query(Employee)
-        .filter(Employee.id == employee_id)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == current_user.company_id
+        )
         .first()
     )
 
@@ -152,7 +191,10 @@ def assign_manager(
 
     manager = (
         db.query(Employee)
-        .filter(Employee.id == manager_id)
+        .filter(
+            Employee.id == manager_id,
+            Employee.company_id == current_user.company_id
+        )
         .first()
     )
 
@@ -176,16 +218,76 @@ def assign_manager(
     return employee
 
 
+@router.patch("/{employee_id}/hr")
+def assign_hr(
+    employee_id: int,
+    hr_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            Permission.ASSIGN_EMPLOYEE_HR
+        )
+    )
+):
+    employee = (
+        db.query(Employee)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == current_user.company_id
+        )
+        .first()
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
+    hr = (
+        db.query(HR)
+        .filter(
+            HR.id == hr_id,
+            HR.company_id == current_user.company_id
+        )
+        .first()
+    )
+
+    if not hr:
+        raise HTTPException(
+            status_code=404,
+            detail="HR not found"
+        )
+
+    employee.hr_id = hr_id
+
+    db.commit()
+    db.refresh(employee)
+
+    return {
+        "message": "HR assigned successfully",
+        "employee_id": employee.id,
+        "hr_id": employee.hr_id
+    }
+
+
 @router.patch("/{employee_id}/status")
 def update_employee_status(
     employee_id: int,
     status: str,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.MANAGE_EMPLOYEE_STATUS
+        )
+    )
 ):
     employee = (
         db.query(Employee)
-        .filter(Employee.id == employee_id)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == current_user.company_id
+        )
         .first()
     )
 
@@ -229,11 +331,18 @@ def employee_exit(
     employee_id: int,
     exit_data: EmployeeExit,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.MANAGE_EMPLOYEE_EXIT
+        )
+    )
 ):
     employee = (
         db.query(Employee)
-        .filter(Employee.id == employee_id)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == current_user.company_id
+        )
         .first()
     )
 
@@ -279,9 +388,29 @@ def employee_exit(
 def get_employee_history(
     employee_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(
+        require_permission(
+            Permission.VIEW_EMPLOYEES
+        )
+    )
 ):
+    employee = (
+        db.query(Employee)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == current_user.company_id
+        )
+        .first()
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
     return get_employee_history_service(
-        db,
-        employee_id
+    db,
+    employee_id,
+    current_user.company_id
     )

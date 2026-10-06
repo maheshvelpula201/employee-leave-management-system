@@ -7,11 +7,13 @@ from src.app.models.hr import HR
 def create_hr(
     db: Session,
     name: str,
-    email: str
+    email: str,
+    company_id: int
 ):
     new_hr = HR(
         name=name,
-        email=email
+        email=email,
+        company_id=company_id
     )
 
     db.add(new_hr)
@@ -21,28 +23,45 @@ def create_hr(
     return new_hr
 
 
-def get_all_hrs(db: Session):
-    return db.query(HR).all()
+def get_all_hrs(
+    db: Session,
+    company_id: int
+):
+    return (
+        db.query(HR)
+        .filter(
+            HR.company_id == company_id
+        )
+        .all()
+    )
 
 
 def get_hr_by_id(
     db: Session,
-    hr_id: int
+    hr_id: int,
+    company_id: int
 ):
     return (
         db.query(HR)
-        .filter(HR.id == hr_id)
+        .filter(
+            HR.id == hr_id,
+            HR.company_id == company_id
+        )
         .first()
     )
 
 
 def get_hr_by_email(
     db: Session,
-    email: str
+    email: str,
+    company_id: int
 ):
     return (
         db.query(HR)
-        .filter(HR.email == email)
+        .filter(
+            HR.email == email,
+            HR.company_id == company_id
+        )
         .first()
     )
 
@@ -62,10 +81,14 @@ def assign_employee_to_hr(
 
 def get_employees_by_hr(
     db: Session,
-    hr_id: int
+    hr_id: int,
+    company_id: int
 ):
     return (
         db.query(Employee)
-        .filter(Employee.hr_id == hr_id)
+        .filter(
+            Employee.hr_id == hr_id,
+            Employee.company_id == company_id
+        )
         .all()
     )

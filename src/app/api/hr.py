@@ -1,12 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.app.db.database import get_db
-
-from src.app.schemas.hr import (
-    HRCreate,
-    HRResponse
-)
+from src.app.schemas.hr import HRCreate
 
 from src.app.services.hr import (
     create_hr_service,
@@ -16,6 +12,9 @@ from src.app.services.hr import (
     get_employees_by_hr_service
 )
 
+from src.app.core.rbac import Permission
+from src.app.core.rbac_dependencies import require_permission
+
 
 router = APIRouter(
     prefix="/hrs",
@@ -23,67 +22,86 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/",
-    response_model=HRResponse
-)
+@router.post("/")
 def create_hr(
-    hr: HRCreate,
-    db: Session = Depends(get_db)
+    data: HRCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            Permission.INVITE_HR
+        )
+    )
 ):
     return create_hr_service(
         db,
-        hr
+        data,
+        current_user.company_id
     )
 
 
-@router.get(
-    "/",
-    response_model=list[HRResponse]
-)
+@router.get("/")
 def get_all_hrs(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            Permission.VIEW_HRS
+        )
+    )
 ):
-    return get_all_hrs_service(db)
+    return get_all_hrs_service(
+        db,
+        current_user.company_id
+    )
 
 
-@router.get(
-    "/{hr_id}",
-    response_model=HRResponse
-)
+@router.get("/{hr_id}")
 def get_hr_by_id(
     hr_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            Permission.VIEW_HRS
+        )
+    )
 ):
     return get_hr_by_id_service(
         db,
-        hr_id
+        hr_id,
+        current_user.company_id
     )
 
 
-@router.post(
-    "/{hr_id}/employees/{employee_id}"
-)
+@router.patch("/{hr_id}/employees/{employee_id}")
 def assign_employee_to_hr(
     hr_id: int,
     employee_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            Permission.ASSIGN_EMPLOYEE_HR
+        )
+    )
 ):
     return assign_employee_to_hr_service(
         db,
         hr_id,
-        employee_id
+        employee_id,
+        current_user.company_id
     )
 
 
-@router.get(
-    "/{hr_id}/employees"
-)
+@router.get("/{hr_id}/employees")
 def get_employees_by_hr(
     hr_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(
+            Permission.VIEW_HRS
+        )
+    )
 ):
     return get_employees_by_hr_service(
         db,
-        hr_id
+        hr_id,
+        current_user.company_id
     )

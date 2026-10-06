@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from src.app.models.employes import Employee
+from src.app.models.leave import Leave
 
 from src.app.repositories.leave import (
     create_leave,
@@ -21,10 +22,17 @@ from src.app.repositories.leave_balance import (
 from src.app.schemas.leave import LeaveCreate
 
 
-def create_leave_service(db: Session, leave: LeaveCreate):
+def create_leave_service(
+    db: Session,
+    leave: LeaveCreate,
+    company_id: int
+):
     employee = (
         db.query(Employee)
-        .filter(Employee.id == leave.employee_id)
+        .filter(
+            Employee.id == leave.employee_id,
+            Employee.company_id == company_id
+        )
         .first()
     )
 
@@ -38,7 +46,8 @@ def create_leave_service(db: Session, leave: LeaveCreate):
         db,
         leave.employee_id,
         leave.start_date,
-        leave.end_date
+        leave.end_date,
+        company_id
     )
 
     if existing_leave:
@@ -47,15 +56,33 @@ def create_leave_service(db: Session, leave: LeaveCreate):
             detail="Leave dates overlap with an existing leave"
         )
 
-    return create_leave(db, leave)
+    return create_leave(
+        db,
+        leave,
+        company_id
+    )
 
 
-def get_all_leaves_service(db: Session):
-    return get_all_leaves(db)
+def get_all_leaves_service(
+    db: Session,
+    company_id: int
+):
+    return get_all_leaves(
+        db,
+        company_id
+    )
 
 
-def get_leave_by_id_service(db: Session, leave_id: int):
-    leave = get_leave_by_id(db, leave_id)
+def get_leave_by_id_service(
+    db: Session,
+    leave_id: int,
+    company_id: int
+):
+    leave = get_leave_by_id(
+        db,
+        leave_id,
+        company_id
+    )
 
     if not leave:
         raise HTTPException(
@@ -69,9 +96,14 @@ def get_leave_by_id_service(db: Session, leave_id: int):
 def update_leave_status_service(
     db: Session,
     leave_id: int,
-    status: str
+    status: str,
+    company_id: int
 ):
-    leave = get_leave_by_id(db, leave_id)
+    leave = get_leave_by_id(
+        db,
+        leave_id,
+        company_id
+    )
 
     if not leave:
         raise HTTPException(
@@ -87,7 +119,9 @@ def update_leave_status_service(
 
     if status == "Approved":
 
-        days = (leave.end_date - leave.start_date).days + 1
+        days = (
+            leave.end_date - leave.start_date
+        ).days + 1
 
         balance = get_leave_balance(
             db,
@@ -116,12 +150,21 @@ def update_leave_status_service(
     return update_leave_status(
         db,
         leave_id,
-        status
+        status,
+        company_id
     )
 
 
-def delete_leave_service(db: Session, leave_id: int):
-    leave = get_leave_by_id(db, leave_id)
+def delete_leave_service(
+    db: Session,
+    leave_id: int,
+    company_id: int
+):
+    leave = get_leave_by_id(
+        db,
+        leave_id,
+        company_id
+    )
 
     if not leave:
         raise HTTPException(
@@ -135,14 +178,35 @@ def delete_leave_service(db: Session, leave_id: int):
             detail=f"Cannot delete a {leave.status} leave"
         )
 
-    return delete_leave(db, leave_id)
+    return delete_leave(
+        db,
+        leave_id,
+        company_id
+    )
 
 
 def get_leaves_by_employee_service(
     db: Session,
-    employee_id: int
+    employee_id: int,
+    company_id: int
 ):
+    employee = (
+        db.query(Employee)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == company_id
+        )
+        .first()
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
     return get_leaves_by_employee(
         db,
-        employee_id
+        employee_id,
+        company_id
     )

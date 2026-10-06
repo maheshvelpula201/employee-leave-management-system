@@ -7,16 +7,9 @@ from src.app.db.database import Base
 class Employee(Base):
     __tablename__ = "employees"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    id = Column(Integer, primary_key=True, index=True)
 
-    name = Column(
-        String,
-        nullable=False
-    )
+    name = Column(String, nullable=False)
 
     email = Column(
         String,
@@ -83,6 +76,12 @@ class Employee(Base):
         nullable=True
     )
 
+    company_id = Column(
+        Integer,
+        ForeignKey("companies.id"),
+        nullable=False
+    )
+
     leaves = relationship(
         "Leave",
         back_populates="employee"
@@ -107,4 +106,8 @@ class Employee(Base):
     history = relationship(
         "EmployeeHistory",
         back_populates="employee"
+    )
+
+    company = relationship(
+        "Company"
     )

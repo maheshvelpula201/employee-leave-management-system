@@ -8,11 +8,13 @@ from src.app.repositories.employee_history import (
 
 def get_employee_history_service(
     db: Session,
-    employee_id: int
+    employee_id: int,
+    company_id: int
 ):
     history = get_employee_history(
         db,
-        employee_id
+        employee_id,
+        company_id
     )
 
     if not history:

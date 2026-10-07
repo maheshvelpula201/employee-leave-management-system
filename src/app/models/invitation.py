@@ -30,7 +30,7 @@ class Invitation(Base):
         nullable=False
     )
 
-    invitation_code = Column(
+    token_hash = Column(
         String,
         unique=True,
         nullable=False,

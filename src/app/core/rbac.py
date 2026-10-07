@@ -53,7 +53,7 @@ class Permission(str, Enum):
 
     # Attendance
     VIEW_ATTENDANCE = "view_attendance"
-    MANAGE_ATTENDANCE = "manage_attendance"
+    MANAGE_ATTENDANCE = "manage_attENDANCE"
 
     # Leave
     VIEW_LEAVES = "view_leaves"

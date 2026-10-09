@@ -1,0 +1,357 @@
+
+.registration-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 18px;
+  background:
+    radial-gradient(circle at top left, #e5edff 0, transparent 38%),
+    #f5f7fb;
+  color: #172033;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+.registration-card {
+  width: 100%;
+  max-width: 590px;
+  padding: 36px;
+  border: 1px solid #e5e9f2;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgb(24 39 75 / 9%);
+}
+
+.registration-back-link {
+  display: block;
+  margin-bottom: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #475569;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.registration-back-link:hover {
+  color: #315ee8;
+}
+
+.registration-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.registration-brand-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 13px;
+  background: #315ee8;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.registration-brand h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.registration-brand p {
+  margin: 4px 0 0;
+  color: #718096;
+  font-size: 12px;
+}
+
+.registration-heading {
+  margin-bottom: 25px;
+}
+
+.registration-eyebrow {
+  margin: 0 0 9px;
+  color: #315ee8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.registration-heading h2,
+.registration-success h1 {
+  margin: 0;
+  color: #172033;
+  font-size: clamp(23px, 4vw, 30px);
+  letter-spacing: -0.8px;
+  line-height: 1.25;
+}
+
+.registration-heading > p:last-child,
+.registration-description {
+  margin: 10px 0 0;
+  color: #718096;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.registration-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8993a5;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.progress-step span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #dce2ed;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 12px;
+}
+
+.progress-step.active {
+  color: #315ee8;
+}
+
+.progress-step.active span,
+.progress-step.complete span {
+  border-color: #315ee8;
+  background: #315ee8;
+  color: #fff;
+}
+
+.progress-line {
+  height: 1px;
+  flex: 1;
+  background: #e2e7f0;
+}
+
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.registration-form label {
+  margin-top: 7px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.registration-form input,
+.registration-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid #dce2ed;
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.registration-form input:focus,
+.registration-form textarea:focus {
+  border-color: #315ee8;
+  box-shadow: 0 0 0 3px rgb(49 94 232 / 12%);
+}
+
+.registration-form input::placeholder,
+.registration-form textarea::placeholder {
+  color: #a0a9b8;
+}
+
+.registration-form textarea {
+  resize: vertical;
+}
+
+.registration-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.registration-field-row > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.registration-primary-button,
+.registration-secondary-button {
+  min-height: 46px;
+  padding: 12px 16px;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.registration-primary-button {
+  width: 100%;
+  margin-top: 17px;
+  border: 1px solid #315ee8;
+  background: #315ee8;
+  color: #fff;
+}
+
+.registration-primary-button:hover:not(:disabled) {
+  background: #244bc7;
+}
+
+.registration-primary-button:disabled,
+.registration-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.registration-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 9px;
+}
+
+.registration-actions .registration-primary-button {
+  flex: 1;
+  margin-top: 0;
+}
+
+.registration-secondary-button {
+  border: 1px solid #dce2ed;
+  background: #fff;
+  color: #344054;
+}
+
+.registration-secondary-button:hover:not(:disabled) {
+  background: #f5f7fb;
+}
+
+.registration-error {
+  margin: 12px 0 0;
+  padding: 11px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.registration-note {
+  margin: 8px 0 0;
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.registration-footer {
+  margin: 28px 0 0;
+  color: #98a2b3;
+  font-size: 11px;
+  text-align: center;
+}
+
+.registration-success {
+  text-align: center;
+}
+
+.registration-success-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.registration-success .registration-eyebrow {
+  margin-bottom: 10px;
+}
+
+.registration-summary {
+  display: grid;
+  gap: 0;
+  margin-top: 26px;
+  border: 1px solid #e5e9f2;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.registration-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e9f2;
+}
+
+.registration-summary > div:last-child {
+  border-bottom: 0;
+}
+
+.registration-summary span {
+  color: #718096;
+  font-size: 12px;
+}
+
+.registration-summary strong {
+  overflow-wrap: anywhere;
+  color: #172033;
+  font-size: 14px;
+}
+
+@media (max-width: 520px) {
+  .registration-page {
+    align-items: flex-start;
+    padding: 18px 10px;
+  }
+
+  .registration-card {
+    padding: 24px 18px;
+    border-radius: 15px;
+  }
+
+  .registration-field-row {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .registration-progress {
+    gap: 8px;
+  }
+
+  .progress-step {
+    gap: 5px;
+    font-size: 11px;
+  }
+}

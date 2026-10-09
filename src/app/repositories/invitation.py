@@ -8,14 +8,14 @@ def create_invitation(
     company_id: int,
     email: str,
     role: str,
-    invitation_code: str,
+    token_hash: str,
     expires_at
 ):
     invitation = Invitation(
         company_id=company_id,
         email=email,
         role=role,
-        invitation_code=invitation_code,
+        token_hash=token_hash,
         status="PENDING",
         expires_at=expires_at
     )
@@ -45,14 +45,30 @@ def get_pending_invitation(
     )
 
 
-def get_invitation_by_code(
+def get_invitation_by_token_hash(
     db: Session,
-    invitation_code: str
+    token_hash: str
 ):
     return (
         db.query(Invitation)
         .filter(
-            Invitation.invitation_code == invitation_code
+            Invitation.token_hash == token_hash
         )
         .first()
+    )
+
+
+def get_all_invitations(
+    db: Session,
+    company_id: int
+):
+    return (
+        db.query(Invitation)
+        .filter(
+            Invitation.company_id == company_id
+        )
+        .order_by(
+            Invitation.created_at.desc()
+        )
+        .all()
     )

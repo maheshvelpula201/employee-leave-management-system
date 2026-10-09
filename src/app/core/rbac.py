@@ -40,6 +40,9 @@ class Permission(str, Enum):
     INVITE_ADMIN = "invite_admin"
     MANAGE_ADMIN = "manage_admin"
 
+    # Invitations
+    INVITE_EMPLOYEE = "invite_employee"
+
     # Analytics
     VIEW_ANALYTICS = "view_analytics"
     VIEW_COMPANY_PERFORMANCE = "view_company_performance"
@@ -53,7 +56,7 @@ class Permission(str, Enum):
 
     # Attendance
     VIEW_ATTENDANCE = "view_attendance"
-    MANAGE_ATTENDANCE = "manage_attENDANCE"
+    MANAGE_ATTENDANCE = "manage_attendance"
 
     # Leave
     VIEW_LEAVES = "view_leaves"
@@ -112,6 +115,8 @@ ROLE_PERMISSIONS = {
         Permission.VIEW_ADMINS,
         Permission.INVITE_ADMIN,
         Permission.MANAGE_ADMIN,
+
+        Permission.INVITE_EMPLOYEE,
 
         Permission.VIEW_ANALYTICS,
         Permission.VIEW_COMPANY_PERFORMANCE,

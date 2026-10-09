@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.app.api.employees.routes import router as employee_router
 from src.app.api.leave import router as leave_router
@@ -10,6 +11,7 @@ from src.app.api.company import router as company_router
 from src.app.api.admin import router as admin_router
 from src.app.api.auth import router as auth_router
 from src.app.api.test_auth import router as test_auth_router
+from src.app.api.invitation import router as invitation_router
 
 
 app = FastAPI(
@@ -18,6 +20,20 @@ app = FastAPI(
 )
 
 
+# Allow the local React frontend to communicate with FastAPI.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Register existing API routers.
 app.include_router(employee_router)
 app.include_router(leave_router)
 app.include_router(leave_balance_router)
@@ -28,6 +44,7 @@ app.include_router(company_router)
 app.include_router(admin_router)
 app.include_router(auth_router)
 app.include_router(test_auth_router)
+app.include_router(invitation_router)
 
 
 @app.get("/")

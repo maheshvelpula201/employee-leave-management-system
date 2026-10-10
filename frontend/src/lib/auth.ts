@@ -17,7 +17,6 @@ export type LoginResponse = {
 };
 
 export type LoginCredentials = {
-  role: string;
   email: string;
   password: string;
 };

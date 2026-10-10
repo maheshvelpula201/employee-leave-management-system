@@ -1,9 +1,8 @@
+
 import { useState } from 'react'
-import InvitationsPage from './InvitationsPage'
-import InvitationRegistrationPage from './InvitationRegistrationPage'
-import EmployeeDashboard from './EmployeeDashboard'
 import {
   Activity,
+  
   ArrowUpRight,
   Bell,
   BriefcaseBusiness,
@@ -28,14 +27,6 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom'
-import LoginPage from './LoginPage'
-import CompanyRegistrationPage from './CompanyRegistrationPage'
-import {
-  getAccessToken,
-  getCurrentUser,
-  logoutLocal,
-} from './lib/auth'
-import { apiRequest } from './lib/api'
 import './App.css'
 
 const navigation = [
@@ -92,94 +83,10 @@ const pageDetails: Record<
   },
 }
 
-
 function App() {
-  const [authenticated, setAuthenticated] = useState(
-    () => Boolean(getAccessToken() && getCurrentUser()),
-  )
-  const [showRegistration, setShowRegistration] = useState(false)
-  const location = useLocation()
-
-  if (location.pathname === '/invite') {
-    return <InvitationRegistrationPage />
-}
-
-  if (!authenticated) {
-    if (showRegistration) {
-      return (
-        <CompanyRegistrationPage
-          onBack={() => setShowRegistration(false)}
-        />
-      )
-    }
-
-    return (
-      <LoginPage
-        onLoginSuccess={() => setAuthenticated(true)}
-        onCreateCompany={() => setShowRegistration(true)}
-      />
-    )
-  }
-
-  
-  const currentUser = getCurrentUser()
-
-  if (currentUser?.role === 'EMPLOYEE') {
-    return (
-      <EmployeeDashboard
-        onLogout={() => {
-          setAuthenticated(false)
-        }}
-      />
-    )
-  }
-
-  return (
-    <DashboardApp
-      onLogout={() => {
-        logoutLocal()
-        setAuthenticated(false)
-      }}
-    />
-  )
-
-}
-
-function DashboardApp({ onLogout }: { onLogout: () => void }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const [logoutError, setLogoutError] = useState('')
-  const [loggingOut, setLoggingOut] = useState(false)
-
   const location = useLocation()
   const currentPage = pageDetails[location.pathname] ?? pageDetails['/']
-  const user = getCurrentUser()
-
-  async function handleLogout() {
-    if (loggingOut) return
-
-    setLoggingOut(true)
-    setLogoutError('')
-
-    const refreshToken = sessionStorage.getItem('hr_refresh_token')
-
-    try {
-      if (refreshToken) {
-        await apiRequest('/auth/logout', {
-          method: 'POST',
-          body: { refresh_token: refreshToken },
-        })
-      }
-    } catch (error) {
-      setLogoutError(
-        error instanceof Error
-          ? `Server logout failed: ${error.message}`
-          : 'Server logout failed.',
-      )
-    } finally {
-      // Clear local credentials even if the server request fails.
-      onLogout()
-    }
-  }
 
   return (
     <div className="app-shell">
@@ -210,9 +117,7 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
         </div>
 
         <button className="company-switcher" type="button">
-          <div className="company-avatar">
-            {user?.name?.charAt(0).toUpperCase() || 'A'}
-          </div>
+          <div className="company-avatar">A</div>
           <div className="company-copy">
             <span className="company-name">Your company</span>
             <span className="company-plan">Company workspace</span>
@@ -240,10 +145,7 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
                     <Icon size={18} strokeWidth={1.8} />
                     <span>{item.label}</span>
                     {item.path === '/invitations' && (
-                      <span
-                        className="nav-link-indicator"
-                        aria-hidden="true"
-                      />
+                      <span className="nav-link-indicator" aria-hidden="true" />
                     )}
                   </NavLink>
                 )
@@ -264,40 +166,20 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
           </div>
 
           <div className="sidebar-footer">
-            <div className="profile-avatar">
-              {user?.name
-                ? user.name
-                    .split(/\s+/)
-                    .slice(0, 2)
-                    .map((part) => part.charAt(0).toUpperCase())
-                    .join('')
-                : 'CA'}
-            </div>
+            <div className="profile-avatar">CA</div>
             <div className="profile-copy">
-              <span className="profile-name">
-                {user?.name || 'Company Admin'}
-              </span>
-              <span className="profile-role">
-                {user?.role || 'Administrator'}
-              </span>
+              <span className="profile-name">Company Admin</span>
+              <span className="profile-role">Administrator</span>
             </div>
             <button
               className="icon-button profile-menu"
               type="button"
-              aria-label="Sign out"
-              title="Sign out"
-              onClick={handleLogout}
-              disabled={loggingOut}
+              aria-label="Account options"
+              title="Account options will be connected with authentication"
             >
               <LogOut size={17} />
             </button>
           </div>
-
-          {logoutError && (
-            <p role="status" className="logout-error">
-              {logoutError}
-            </p>
-          )}
         </div>
       </aside>
 
@@ -339,9 +221,7 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
             >
               <Bell size={19} />
             </button>
-            <div className="topbar-avatar">
-              {user?.name?.charAt(0).toUpperCase() || 'A'}
-            </div>
+            <div className="topbar-avatar">CA</div>
           </div>
         </header>
 
@@ -350,9 +230,7 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
             <div>
               <p className="eyebrow">{currentPage.eyebrow}</p>
               <h1>{currentPage.title}</h1>
-              <p className="page-description">
-                {currentPage.description}
-              </p>
+              <p className="page-description">{currentPage.description}</p>
             </div>
             <div className="page-heading-meta">
               <ShieldCheck size={16} />
@@ -386,7 +264,14 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
             />
             <Route
               path="/invitations"
-              element={<InvitationsPage />}
+              element={
+                <FeaturePage
+                  icon={FileText}
+                  title="Bring your team together"
+                  description="Your real invitations will appear here. We'll connect invitation creation and listing next."
+                  endpoint="GET /invitations/"
+                />
+              }
             />
             <Route
               path="/settings"

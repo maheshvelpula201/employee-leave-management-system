@@ -1,0 +1,228 @@
+
+.employee-shell {
+  min-height: 100vh;
+  background: #f6f8fc;
+  color: #172033;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.employee-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 6%;
+  background: #fff;
+  border-bottom: 1px solid #e7ebf2;
+}
+
+.employee-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.employee-brand-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: #e8efff;
+  color: #3158c9;
+}
+
+.employee-brand h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.employee-brand span {
+  display: block;
+  margin-top: 4px;
+  color: #7b8496;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+}
+
+.employee-logout {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 15px;
+  border: 1px solid #dfe4ed;
+  border-radius: 10px;
+  background: #fff;
+  color: #39445a;
+  cursor: pointer;
+}
+
+.employee-logout:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.employee-content {
+  width: min(1100px, 88%);
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.employee-welcome {
+  padding: 34px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #1d3474, #4268c9);
+  color: white;
+}
+
+.employee-eyebrow {
+  margin: 0 0 12px;
+  color: #c8d6ff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.employee-welcome h1 {
+  margin: 0;
+  font-size: clamp(27px, 4vw, 38px);
+}
+
+.employee-welcome > p:last-child {
+  max-width: 620px;
+  margin: 14px 0 0;
+  color: #e0e8ff;
+  line-height: 1.7;
+}
+
+.employee-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid #e7ebf2;
+  border-radius: 16px;
+  background: white;
+}
+
+.employee-profile-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: #edf2ff;
+  color: #3158c9;
+}
+
+.employee-profile-info h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.employee-profile-info p {
+  margin: 6px 0 10px;
+  color: #737e91;
+  overflow-wrap: anywhere;
+}
+
+.employee-role-badge {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #eaf7ef;
+  color: #267747;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.employee-section {
+  margin-top: 38px;
+}
+
+.employee-section-heading h2 {
+  margin: 0;
+  font-size: 23px;
+}
+
+.employee-section-heading p {
+  margin: 8px 0 20px;
+  color: #788195;
+}
+
+.employee-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.employee-feature-card {
+  padding: 24px;
+  border: 1px solid #e7ebf2;
+  border-radius: 16px;
+  background: white;
+}
+
+.employee-feature-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #edf2ff;
+  color: #3158c9;
+}
+
+.employee-feature-card h3 {
+  margin: 20px 0 10px;
+  font-size: 17px;
+}
+
+.employee-feature-card p {
+  min-height: 48px;
+  color: #737e91;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.employee-feature-status {
+  display: inline-block;
+  margin-top: 8px;
+  color: #737e91;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.employee-footer {
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e7ef;
+  color: #8992a3;
+  font-size: 12px;
+}
+
+.employee-logout-error {
+  color: #b42318;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .employee-topbar {
+    padding: 16px 5%;
+  }
+
+  .employee-content {
+    width: 90%;
+    padding: 28px 0;
+  }
+
+  .employee-welcome {
+    padding: 25px;
+  }
+
+  .employee-feature-grid {
+    grid-template-columns: 1fr;
+  }
+}

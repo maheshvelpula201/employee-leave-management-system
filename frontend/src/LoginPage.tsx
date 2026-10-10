@@ -23,7 +23,7 @@ export default function LoginPage({
 
     try {
       await login({
-        role: "COMPANY_ADMIN",
+      
         email: email.trim(),
         password,
       });

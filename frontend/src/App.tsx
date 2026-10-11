@@ -2,6 +2,7 @@ import { useState } from 'react'
 import InvitationsPage from './InvitationsPage'
 import InvitationRegistrationPage from './InvitationRegistrationPage'
 import EmployeeDashboard from './EmployeeDashboard'
+import HRDashboard from "./HRDashboard";
 import {
   Activity,
   ArrowUpRight,
@@ -133,6 +134,16 @@ function App() {
       />
     )
   }
+  if (currentUser?.role === "HR") {
+  return (
+    <HRDashboard
+      onLogout={() => {
+        logoutLocal();
+        setAuthenticated(false);
+      }}
+    />
+  );
+}
 
   return (
     <DashboardApp

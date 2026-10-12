@@ -3,6 +3,7 @@ import InvitationsPage from './InvitationsPage'
 import InvitationRegistrationPage from './InvitationRegistrationPage'
 import EmployeeDashboard from './EmployeeDashboard'
 import HRDashboard from "./HRDashboard";
+import ManagerDashboard from "./ManagerDashboard";
 import {
   Activity,
   ArrowUpRight,
@@ -144,6 +145,19 @@ function App() {
     />
   );
 }
+
+  
+  if (currentUser?.role === "MANAGER") {
+    return (
+      <ManagerDashboard
+        onLogout={() => {
+          logoutLocal();
+          setAuthenticated(false);
+        }}
+      />
+    );
+  }
+
 
   return (
     <DashboardApp

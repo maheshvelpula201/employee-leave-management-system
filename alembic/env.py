@@ -10,6 +10,7 @@ from src.app.models.company import Company
 from src.app.models.user import User
 from src.app.models.invitation import Invitation
 from src.app.models.refresh_token import RefreshToken
+from src.app.models.attendance import Attendance
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool

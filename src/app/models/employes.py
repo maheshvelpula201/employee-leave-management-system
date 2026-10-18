@@ -86,6 +86,10 @@ class Employee(Base):
         "Leave",
         back_populates="employee"
     )
+    attendance = relationship(
+    "Attendance",
+    back_populates="employee"
+    )
 
     manager = relationship(
         "Employee",

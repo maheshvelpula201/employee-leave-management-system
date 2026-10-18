@@ -1,9 +1,11 @@
+
 import { useState } from 'react'
 import InvitationsPage from './InvitationsPage'
 import InvitationRegistrationPage from './InvitationRegistrationPage'
 import EmployeeDashboard from './EmployeeDashboard'
 import HRDashboard from "./HRDashboard";
 import ManagerDashboard from "./ManagerDashboard";
+import AttendancePage from './AttendancePage'
 import {
   Activity,
   ArrowUpRight,
@@ -47,6 +49,7 @@ const navigation = [
       { label: 'Overview', path: '/', icon: LayoutDashboard },
       { label: 'Employees', path: '/employees', icon: Users },
       { label: 'Leave management', path: '/leaves', icon: CalendarDays },
+      { label: 'Attendance', path: '/attendance', icon: CalendarDays },
       { label: 'Invitations', path: '/invitations', icon: FileText },
     ],
   },
@@ -80,6 +83,12 @@ const pageDetails: Record<
     description:
       'Review leave requests and manage time-off workflows using your company policies.',
   },
+  '/attendance': {
+    eyebrow: 'PEOPLE OPERATIONS',
+    title: 'Attendance',
+    description:
+      'View and manage daily employee attendance.',
+  },
   '/invitations': {
     eyebrow: 'TEAM ACCESS',
     title: 'Invitations',
@@ -94,7 +103,6 @@ const pageDetails: Record<
   },
 }
 
-
 function App() {
   const [authenticated, setAuthenticated] = useState(
     () => Boolean(getAccessToken() && getCurrentUser()),
@@ -104,7 +112,7 @@ function App() {
 
   if (location.pathname === '/invite') {
     return <InvitationRegistrationPage />
-}
+  }
 
   if (!authenticated) {
     if (showRegistration) {
@@ -123,7 +131,6 @@ function App() {
     )
   }
 
-  
   const currentUser = getCurrentUser()
 
   if (currentUser?.role === 'EMPLOYEE') {
@@ -135,29 +142,28 @@ function App() {
       />
     )
   }
-  if (currentUser?.role === "HR") {
-  return (
-    <HRDashboard
-      onLogout={() => {
-        logoutLocal();
-        setAuthenticated(false);
-      }}
-    />
-  );
-}
 
-  
+  if (currentUser?.role === "HR") {
+    return (
+      <HRDashboard
+        onLogout={() => {
+          logoutLocal()
+          setAuthenticated(false)
+        }}
+      />
+    )
+  }
+
   if (currentUser?.role === "MANAGER") {
     return (
       <ManagerDashboard
         onLogout={() => {
-          logoutLocal();
-          setAuthenticated(false);
+          logoutLocal()
+          setAuthenticated(false)
         }}
       />
-    );
+    )
   }
-
 
   return (
     <DashboardApp
@@ -167,7 +173,6 @@ function App() {
       }}
     />
   )
-
 }
 
 function DashboardApp({ onLogout }: { onLogout: () => void }) {
@@ -201,7 +206,6 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
           : 'Server logout failed.',
       )
     } finally {
-      // Clear local credentials even if the server request fails.
       onLogout()
     }
   }
@@ -408,6 +412,10 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
                   endpoint="GET /leaves/"
                 />
               }
+            />
+            <Route
+              path="/attendance"
+              element={<AttendancePage />}
             />
             <Route
               path="/invitations"

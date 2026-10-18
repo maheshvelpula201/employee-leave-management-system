@@ -12,7 +12,7 @@ from src.app.api.admin import router as admin_router
 from src.app.api.auth import router as auth_router
 from src.app.api.test_auth import router as test_auth_router
 from src.app.api.invitation import router as invitation_router
-
+from src.app.api.attendance import router as attendance_router
 
 app = FastAPI(
     title="Employee Leave Management System",
@@ -45,6 +45,7 @@ app.include_router(admin_router)
 app.include_router(auth_router)
 app.include_router(test_auth_router)
 app.include_router(invitation_router)
+app.include_router(attendance_router)
 
 
 @app.get("/")

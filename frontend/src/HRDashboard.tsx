@@ -24,6 +24,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import "./HRDashboard.css";
+import AttendancePage from "./AttendancePage";
 
 type HRModule =
   | "Dashboard"
@@ -129,15 +130,23 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
         />
       )}
 
-      <aside className={`hr-sidebar ${sidebarOpen ? "hr-sidebar-open" : ""}`}>
+      <aside
+        className={`hr-sidebar ${
+          sidebarOpen ? "hr-sidebar-open" : ""
+        }`}
+      >
         <div className="hr-brand">
           <div className="hr-brand-mark">
             <ShieldCheck size={23} />
           </div>
+
           <div className="hr-brand-copy">
             <span className="hr-brand-name">Northstar</span>
-            <span className="hr-brand-caption">PEOPLE OPERATIONS</span>
+            <span className="hr-brand-caption">
+              PEOPLE OPERATIONS
+            </span>
           </div>
+
           <button
             className="hr-icon-button hr-mobile-close"
             aria-label="Close navigation"
@@ -158,7 +167,10 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
 
         <div className="hr-nav-heading">WORKSPACE</div>
 
-        <nav className="hr-navigation" aria-label="HR navigation">
+        <nav
+          className="hr-navigation"
+          aria-label="HR navigation"
+        >
           {filteredNavigation.length > 0 ? (
             filteredNavigation.map((item) => {
               const Icon = item.icon;
@@ -167,12 +179,15 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
               return (
                 <button
                   key={item.label}
-                  className={`hr-nav-item ${isActive ? "hr-nav-active" : ""}`}
+                  className={`hr-nav-item ${
+                    isActive ? "hr-nav-active" : ""
+                  }`}
                   onClick={() => selectModule(item.label)}
                   aria-current={isActive ? "page" : undefined}
                 >
                   <Icon size={18} strokeWidth={1.8} />
                   <span>{item.label}</span>
+
                   {item.label === "Employee Requests" && (
                     <span className="hr-nav-indicator" />
                   )}
@@ -180,7 +195,9 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
               );
             })
           ) : (
-            <p className="hr-empty-search">No matching modules found.</p>
+            <p className="hr-empty-search">
+              No matching modules found.
+            </p>
           )}
         </nav>
 
@@ -204,7 +221,10 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
           </button>
 
           {onLogout && (
-            <button className="hr-nav-item hr-logout" onClick={onLogout}>
+            <button
+              className="hr-nav-item hr-logout"
+              onClick={onLogout}
+            >
               <LogOut size={18} strokeWidth={1.8} />
               <span>Sign out</span>
             </button>
@@ -222,6 +242,7 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
             >
               <Menu size={21} />
             </button>
+
             <div className="hr-breadcrumb">
               <span>HR workspace</span>
               <span className="hr-breadcrumb-separator">/</span>
@@ -234,11 +255,14 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
               <Search size={17} />
               <input
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(event) =>
+                  setSearchTerm(event.target.value)
+                }
                 onFocus={() => setSidebarOpen(false)}
                 placeholder="Find a module..."
                 aria-label="Search HR modules"
               />
+
               {searchTerm && (
                 <button
                   type="button"
@@ -253,10 +277,14 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
 
             <div className="hr-notification-wrap">
               <button
-                className={`hr-icon-button ${notificationsOpen ? "hr-icon-selected" : ""}`}
+                className={`hr-icon-button ${
+                  notificationsOpen ? "hr-icon-selected" : ""
+                }`}
                 aria-label="Notifications"
                 aria-expanded={notificationsOpen}
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                onClick={() =>
+                  setNotificationsOpen(!notificationsOpen)
+                }
               >
                 <Bell size={19} />
               </button>
@@ -273,9 +301,10 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                       <X size={16} />
                     </button>
                   </div>
+
                   <p>
-                    Notifications will appear here when connected to the
-                    backend.
+                    Notifications will appear here when connected
+                    to the backend.
                   </p>
                 </div>
               )}
@@ -284,10 +313,17 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
             <div className="hr-profile">
               <div className="hr-avatar">HR</div>
               <div className="hr-profile-copy">
-                <span className="hr-profile-name">HR Workspace</span>
-                <span className="hr-profile-role">Human Resources</span>
+                <span className="hr-profile-name">
+                  HR Workspace
+                </span>
+                <span className="hr-profile-role">
+                  Human Resources
+                </span>
               </div>
-              <ChevronDown size={15} className="hr-profile-chevron" />
+              <ChevronDown
+                size={15}
+                className="hr-profile-chevron"
+              />
             </div>
           </div>
         </header>
@@ -299,11 +335,13 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                 <span className="hr-eyebrow-dot" />
                 PEOPLE OPERATIONS
               </div>
+
               <h1>
                 {activeModule === "Dashboard"
                   ? "HR overview"
                   : activeModule}
               </h1>
+
               <p>{moduleDescriptions[activeModule]}</p>
             </div>
 
@@ -317,14 +355,24 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
             <>
               <section className="hr-welcome-banner">
                 <div className="hr-welcome-copy">
-                  <span className="hr-welcome-label">YOUR WORKSPACE</span>
-                  <h2>Good work starts with great people.</h2>
+                  <span className="hr-welcome-label">
+                    YOUR WORKSPACE
+                  </span>
+
+                  <h2>
+                    Good work starts with great people.
+                  </h2>
+
                   <p>
-                    Keep track of your HR operations, employee activity,
-                    and requests in one place.
+                    Keep track of your HR operations, employee
+                    activity, and requests in one place.
                   </p>
                 </div>
-                <div className="hr-welcome-art" aria-hidden="true">
+
+                <div
+                  className="hr-welcome-art"
+                  aria-hidden="true"
+                >
                   <div className="hr-art-ring hr-art-ring-one" />
                   <div className="hr-art-ring hr-art-ring-two" />
                   <div className="hr-art-square">
@@ -340,6 +388,7 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                   <h2>Workforce snapshot</h2>
                   <p>Key indicators from your HR operations</p>
                 </div>
+
                 <span className="hr-live-label">
                   <span /> Data pending connection
                 </span>
@@ -350,16 +399,29 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                   const Icon = card.icon;
 
                   return (
-                    <article className="hr-stat-card" key={card.label}>
+                    <article
+                      className="hr-stat-card"
+                      key={card.label}
+                    >
                       <div className="hr-stat-top">
-                        <span className="hr-stat-label">{card.label}</span>
-                        <span className={`hr-stat-icon ${card.className}`}>
+                        <span className="hr-stat-label">
+                          {card.label}
+                        </span>
+                        <span
+                          className={`hr-stat-icon ${card.className}`}
+                        >
                           <Icon size={19} />
                         </span>
                       </div>
-                      <div className="hr-stat-value">{card.value}</div>
+
+                      <div className="hr-stat-value">
+                        {card.value}
+                      </div>
+
                       <div className="hr-stat-bottom">
-                        <span className="hr-stat-note">{card.note}</span>
+                        <span className="hr-stat-note">
+                          {card.note}
+                        </span>
                         <span className="hr-stat-neutral">
                           <Activity size={13} />
                           <span>—</span>
@@ -384,25 +446,29 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                     {[
                       {
                         title: "Employee directory",
-                        description: "Employee records and profiles",
+                        description:
+                          "Employee records and profiles",
                         icon: Users,
                         module: "Employees" as HRModule,
                       },
                       {
                         title: "Attendance",
-                        description: "Daily presence and work hours",
+                        description:
+                          "Daily presence and work hours",
                         icon: Clock3,
                         module: "Attendance" as HRModule,
                       },
                       {
                         title: "Leave management",
-                        description: "Applications awaiting review",
+                        description:
+                          "Applications awaiting review",
                         icon: CalendarDays,
                         module: "Leaves" as HRModule,
                       },
                       {
                         title: "Employee requests",
-                        description: "Review and track submissions",
+                        description:
+                          "Review and track submissions",
                         icon: ClipboardList,
                         module: "Employee Requests" as HRModule,
                       },
@@ -413,7 +479,9 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                         <button
                           className="hr-quick-link"
                           key={item.title}
-                          onClick={() => selectModule(item.module)}
+                          onClick={() =>
+                            selectModule(item.module)
+                          }
                         >
                           <span className="hr-quick-icon">
                             <Icon size={19} />
@@ -422,7 +490,10 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                             <strong>{item.title}</strong>
                             <span>{item.description}</span>
                           </span>
-                          <ArrowUpRight size={17} className="hr-quick-arrow" />
+                          <ArrowUpRight
+                            size={17}
+                            className="hr-quick-arrow"
+                          />
                         </button>
                       );
                     })}
@@ -442,10 +513,12 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                     <div className="hr-empty-activity-icon">
                       <CalendarDays size={23} />
                     </div>
+
                     <h3>Nothing to show yet</h3>
+
                     <p>
-                      Recent HR activity will appear here when your data
-                      source is connected.
+                      Recent HR activity will appear here when
+                      your data source is connected.
                     </p>
                   </div>
                 </article>
@@ -461,7 +534,9 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
 
                 <div className="hr-module-grid">
                   {navigation
-                    .filter((item) => item.label !== "Dashboard")
+                    .filter(
+                      (item) => item.label !== "Dashboard",
+                    )
                     .map((item, index) => {
                       const Icon = item.icon;
 
@@ -469,45 +544,72 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
                         <button
                           className="hr-module-card"
                           key={item.label}
-                          onClick={() => selectModule(item.label)}
+                          onClick={() =>
+                            selectModule(item.label)
+                          }
                         >
-                          <span className={`hr-module-icon hr-module-icon-${index % 4}`}>
+                          <span
+                            className={`hr-module-icon hr-module-icon-${
+                              index % 4
+                            }`}
+                          >
                             <Icon size={20} />
                           </span>
+
                           <span className="hr-module-copy">
                             <strong>{item.label}</strong>
-                            <span>{moduleDescriptions[item.label]}</span>
+                            <span>
+                              {moduleDescriptions[item.label]}
+                            </span>
                           </span>
-                          <ArrowUpRight size={17} className="hr-module-arrow" />
+
+                          <ArrowUpRight
+                            size={17}
+                            className="hr-module-arrow"
+                          />
                         </button>
                       );
                     })}
                 </div>
               </section>
             </>
+          ) : activeModule === "Attendance" ? (
+            <AttendancePage />
           ) : (
             <section className="hr-module-placeholder">
               <div className="hr-placeholder-icon">
                 {(() => {
                   const Icon =
-                    navigation.find((item) => item.label === activeModule)?.icon ??
-                    LayoutDashboard;
-                  return <Icon size={30} strokeWidth={1.5} />;
+                    navigation.find(
+                      (item) => item.label === activeModule,
+                    )?.icon ?? LayoutDashboard;
+
+                  return (
+                    <Icon size={30} strokeWidth={1.5} />
+                  );
                 })()}
               </div>
-              <span className="hr-placeholder-eyebrow">HR MODULE</span>
+
+              <span className="hr-placeholder-eyebrow">
+                HR MODULE
+              </span>
+
               <h2>{activeModule}</h2>
               <p>{moduleDescriptions[activeModule]}</p>
+
               <div className="hr-placeholder-divider" />
+
               <div className="hr-placeholder-status">
                 <span className="hr-status-dot" />
                 Module layout ready for implementation
               </div>
+
               <p className="hr-placeholder-footnote">
-                This is the starting layout. We'll build this module's
-                tables, forms, actions, and backend connection in the next
-                steps.
+                This is the starting layout. We'll build this
+                module's tables, forms, actions, and backend
+                connection in the next steps.
               </p>
+
               <button
                 className="hr-secondary-button"
                 onClick={() => selectModule("Dashboard")}
@@ -520,7 +622,9 @@ function HRDashboard({ onLogout }: HRDashboardProps) {
 
           <footer className="hr-footer">
             <span>Northstar HR workspace</span>
-            <span>People operations · Internal workspace</span>
+            <span>
+              People operations · Internal workspace
+            </span>
           </footer>
         </div>
       </main>

@@ -1,3 +1,4 @@
+
 import hashlib
 import secrets
 
@@ -19,6 +20,8 @@ from src.app.repositories.invitation import (
 
 from src.app.models.invitation import Invitation
 from src.app.models.user import User
+from src.app.models.employes import Employee
+from src.app.models.hr import HR
 
 from src.app.core.security import hash_password
 
@@ -139,6 +142,12 @@ def revoke_invitation_service(
             detail="Invitation is already revoked",
         )
 
+    if invitation.status != "PENDING":
+        raise HTTPException(
+            status_code=400,
+            detail="Only pending invitations can be revoked",
+        )
+
     invitation.status = "REVOKED"
     invitation.revoked_at = utc_now_naive()
 
@@ -188,7 +197,12 @@ def accept_invitation_service(
 
     if invitation.expires_at <= utc_now_naive():
         invitation.status = "EXPIRED"
-        db.commit()
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
 
         raise HTTPException(
             status_code=400,
@@ -200,7 +214,12 @@ def accept_invitation_service(
         and invitation.uses_count >= invitation.max_uses
     ):
         invitation.status = "EXHAUSTED"
-        db.commit()
+
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
 
         raise HTTPException(
             status_code=400,
@@ -211,9 +230,7 @@ def accept_invitation_service(
 
     existing_user = (
         db.query(User)
-        .filter(
-            User.email == email
-        )
+        .filter(User.email == email)
         .first()
     )
 
@@ -223,17 +240,39 @@ def accept_invitation_service(
             detail="A user with this email already exists",
         )
 
+    role = invitation.role.strip().upper()
+
     new_user = User(
         name=data.name.strip(),
         email=email,
         password_hash=hash_password(data.password),
-        role=invitation.role,
+        role=role,
         company_id=invitation.company_id,
         is_active=True,
     )
 
     try:
         db.add(new_user)
+        db.flush()
+
+        if role == "HR":
+            new_hr = HR(
+                name=new_user.name,
+                email=new_user.email,
+                company_id=new_user.company_id,
+            )
+            db.add(new_hr)
+
+        elif role in {"EMPLOYEE", "MANAGER"}:
+            new_employee = Employee(
+                name=new_user.name,
+                email=new_user.email,
+                department="Unassigned",
+                designation="Manager" if role == "MANAGER" else None,
+                employment_status="ACTIVE",
+                company_id=new_user.company_id,
+            )
+            db.add(new_employee)
 
         invitation.uses_count += 1
 

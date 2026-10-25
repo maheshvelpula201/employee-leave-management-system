@@ -5,7 +5,8 @@ import InvitationRegistrationPage from './InvitationRegistrationPage'
 import EmployeeDashboard from './EmployeeDashboard'
 import HRDashboard from "./HRDashboard";
 import ManagerDashboard from "./ManagerDashboard";
-import AttendancePage from './AttendancePage'
+import CompanyAdminAttendancePage from './CompanyAdminAttendancePage'
+import EmployeesPage from './EmployeesPage'
 import {
   Activity,
   ArrowUpRight,
@@ -393,15 +394,9 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
             <Route path="/" element={<DashboardPage />} />
             <Route
               path="/employees"
-              element={
-                <FeaturePage
-                  icon={Users}
-                  title="Your employee directory"
-                  description="Employee records will be loaded from the FastAPI employee endpoints."
-                  endpoint="GET /employees/"
-                />
-              }
+              element={<EmployeesPage />}
             />
+             
             <Route
               path="/leaves"
               element={
@@ -415,8 +410,9 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
             />
             <Route
               path="/attendance"
-              element={<AttendancePage />}
+              element={<CompanyAdminAttendancePage />}
             />
+            
             <Route
               path="/invitations"
               element={<InvitationsPage />}

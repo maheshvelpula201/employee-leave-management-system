@@ -1,3 +1,4 @@
+
 from sqlalchemy import Column, Integer, String, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
@@ -11,37 +12,19 @@ class Employee(Base):
 
     name = Column(String, nullable=False)
 
-    email = Column(
-        String,
-        unique=True,
-        nullable=False,
-        index=True
-    )
+    email = Column(String, unique=True, nullable=False, index=True)
 
-    department = Column(
-        String,
-        nullable=False
-    )
+    department = Column(String, nullable=False)
 
-    designation = Column(
-        String,
-        nullable=True
-    )
+    designation = Column(String, nullable=True)
 
-    joining_date = Column(
-        Date,
-        nullable=True
-    )
+    floor = Column(String, nullable=True)
 
-    leaving_date = Column(
-        Date,
-        nullable=True
-    )
+    joining_date = Column(Date, nullable=True)
 
-    termination_reason = Column(
-        String,
-        nullable=True
-    )
+    leaving_date = Column(Date, nullable=True)
+
+    termination_reason = Column(String, nullable=True)
 
     employment_status = Column(
         String,
@@ -49,20 +32,11 @@ class Employee(Base):
         default="ACTIVE"
     )
 
-    phone = Column(
-        String,
-        nullable=True
-    )
+    phone = Column(String, nullable=True)
 
-    emergency_contact_name = Column(
-        String,
-        nullable=True
-    )
+    emergency_contact_name = Column(String, nullable=True)
 
-    emergency_contact_phone = Column(
-        String,
-        nullable=True
-    )
+    emergency_contact_phone = Column(String, nullable=True)
 
     manager_id = Column(
         Integer,
@@ -86,9 +60,10 @@ class Employee(Base):
         "Leave",
         back_populates="employee"
     )
+
     attendance = relationship(
-    "Attendance",
-    back_populates="employee"
+        "Attendance",
+        back_populates="employee"
     )
 
     manager = relationship(
@@ -112,6 +87,4 @@ class Employee(Base):
         back_populates="employee"
     )
 
-    company = relationship(
-        "Company"
-    )
+    company = relationship("Company")

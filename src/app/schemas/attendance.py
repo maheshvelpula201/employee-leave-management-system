@@ -16,6 +16,7 @@ AttendanceStatusInput = Literal[
     "WEEK_OFF",
 ]
 
+
 StatusDisplay = {
     "PRESENT": "Present",
     "ABSENT": "Absent",
@@ -57,16 +58,20 @@ class AttendanceUpload(BaseModel):
     @model_validator(mode="after")
     def validate_entries(self):
         ids = [entry.employee_id for entry in self.entries]
+
         if len(ids) != len(set(ids)):
-            raise ValueError("An employee can appear only once per upload")
+            raise ValueError(
+                "An employee can appear only once per upload"
+            )
+
         return self
 
 
 class AttendanceMark(BaseModel):
-    employee_id: int
+    employee_id: int = Field(gt=0)
     attendance_date: date
     status: AttendanceStatusInput
-    notes: str | None = None
+    notes: str | None = Field(default=None, max_length=2000)
     check_in: time | None = None
     check_out: time | None = None
 
@@ -99,6 +104,8 @@ class AttendanceResponse(BaseModel):
 
 
 class AttendanceBatchResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     attendance_date: date
     scope_key: str
@@ -107,3 +114,25 @@ class AttendanceBatchResponse(BaseModel):
     uploaded_by: int
     uploaded_at: datetime
     closes_at: datetime
+
+
+
+class AttendanceMonthlySummaryResponse(BaseModel):
+    employee_id: int
+    year: int
+    month: int
+    period_start: date
+    period_end: date
+    total_marked_days: int
+
+    present: int
+    absent: int
+    late: int
+    half_day: int
+    on_leave: int
+    work_from_home: int
+    holidays: int
+    week_offs: int
+
+    records: list[AttendanceResponse]
+

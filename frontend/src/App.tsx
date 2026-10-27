@@ -3,8 +3,8 @@ import { useState } from 'react'
 import InvitationsPage from './InvitationsPage'
 import InvitationRegistrationPage from './InvitationRegistrationPage'
 import EmployeeDashboard from './EmployeeDashboard'
-import HRDashboard from "./HRDashboard";
-import ManagerDashboard from "./ManagerDashboard";
+import HRDashboard from './HRDashboard'
+import ManagerDashboard from './ManagerDashboard'
 import CompanyAdminAttendancePage from './CompanyAdminAttendancePage'
 import EmployeesPage from './EmployeesPage'
 import {
@@ -48,7 +48,7 @@ const navigation = [
     title: 'WORKSPACE',
     items: [
       { label: 'Overview', path: '/', icon: LayoutDashboard },
-      { label: 'Employees', path: '/employees', icon: Users },
+      { label: 'Staff', path: '/employees', icon: Users },
       { label: 'Leave management', path: '/leaves', icon: CalendarDays },
       { label: 'Attendance', path: '/attendance', icon: CalendarDays },
       { label: 'Invitations', path: '/invitations', icon: FileText },
@@ -74,9 +74,9 @@ const pageDetails: Record<
   },
   '/employees': {
     eyebrow: 'PEOPLE',
-    title: 'Employees',
+    title: 'Staff directory',
     description:
-      'Manage your company directory, employee details, and employment status.',
+      "View and manage your company's staff directory and employment details.",
   },
   '/leaves': {
     eyebrow: 'TIME OFF',
@@ -144,7 +144,7 @@ function App() {
     )
   }
 
-  if (currentUser?.role === "HR") {
+  if (currentUser?.role === 'HR') {
     return (
       <HRDashboard
         onLogout={() => {
@@ -155,7 +155,7 @@ function App() {
     )
   }
 
-  if (currentUser?.role === "MANAGER") {
+  if (currentUser?.role === 'MANAGER') {
     return (
       <ManagerDashboard
         onLogout={() => {
@@ -392,11 +392,8 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
 
           <Routes>
             <Route path="/" element={<DashboardPage />} />
-            <Route
-              path="/employees"
-              element={<EmployeesPage />}
-            />
-             
+            <Route path="/employees" element={<EmployeesPage />} />
+
             <Route
               path="/leaves"
               element={
@@ -412,7 +409,7 @@ function DashboardApp({ onLogout }: { onLogout: () => void }) {
               path="/attendance"
               element={<CompanyAdminAttendancePage />}
             />
-            
+
             <Route
               path="/invitations"
               element={<InvitationsPage />}

@@ -1,190 +1,382 @@
+// frontend/src/InvitationsPage.tsx
 
-import { useState, type FormEvent } from 'react'
-import { Link2, ShieldCheck } from 'lucide-react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Copy, Link2, LoaderCircle, RefreshCw, ShieldCheck, XCircle } from 'lucide-react'
 import { apiRequest } from './lib/api'
-import './InvitationRegistrationPage.css'
+import { getAccessToken } from './lib/auth'
+import './InvitationsPage.css'
 
-type InvitationAcceptanceResponse = {
-  message: string
-  user_id: number
-  name: string
-  email: string
-  role: string
+type Invitation = {
+  id: number
   company_id: number
-  is_active: boolean
+  email: string | null
+  role: string
+  status: string
+  max_uses: number | null
+  uses_count: number
+  created_by: number | null
+  revoked_at: string | null
+  expires_at: string
+  created_at: string
 }
 
-export default function InvitationRegistrationPage() {
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const token = searchParams.get('token') ?? ''
+type CreatedInvitation = {
+  invitation_id: number
+  company_id: number
+  email: string | null
+  role: string
+  status: string
+  max_uses: number | null
+  uses_count: number
+  expires_at: string
+  invitation_token: string
+}
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+export default function InvitationsPage() {
+  const [invitations, setInvitations] = useState<Invitation[]>([])
+  const [role, setRole] = useState('EMPLOYEE')
+  const [targetEmail, setTargetEmail] = useState('')
+  const [unlimited, setUnlimited] = useState(false)
+  const [maxUses, setMaxUses] = useState('3')
+  const [expiryDays, setExpiryDays] = useState('3')
+  const [created, setCreated] = useState<CreatedInvitation | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(false)
+  const [revokingId, setRevokingId] = useState<number | null>(null)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [copied, setCopied] = useState(false)
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError('')
-    setSuccess('')
+  const token = getAccessToken()
 
+  const loadInvitations = useCallback(async () => {
     if (!token) {
-      setError('This invitation link is missing its token.')
-      return
-    }
-
-    if (password.length < 8) {
-      setError('Your password must contain at least 8 characters.')
-      return
-    }
-
-    if (password !== confirmPassword) {
-      setError('Your passwords do not match.')
+      setError('Your session is missing. Please sign in again.')
+      setLoading(false)
       return
     }
 
     setLoading(true)
+    setError('')
 
     try {
-      const response =
-        await apiRequest<InvitationAcceptanceResponse>(
-          '/invitations/accept',
-          {
-            method: 'POST',
-            body: {
-              token,
-              name: name.trim(),
-              email: email.trim().toLowerCase(),
-              password,
-            },
-          },
-        )
-
-      setSuccess(
-        `Welcome, ${response.name}! Your ${response.role} account has been created. You can now sign in.`,
-      )
-
-      // Give the user time to read the success message before navigating.
-      window.setTimeout(() => {
-        navigate('/', { replace: true })
-      }, 1800)
+      const data = await apiRequest<Invitation[]>('/invitations/', {
+        token,
+      })
+      setInvitations(data)
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Registration failed. Please try again.',
+        err instanceof Error ? err.message : 'Could not load invitations.',
       )
     } finally {
       setLoading(false)
     }
+  }, [token])
+
+  useEffect(() => {
+    void loadInvitations()
+  }, [loadInvitations])
+
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+    setNotice('')
+    setCreated(null)
+
+    const uses = Number(maxUses)
+    const days = Number(expiryDays)
+
+    if (!unlimited && (!Number.isInteger(uses) || uses < 1)) {
+      setError('Enter a valid usage limit of at least 1.')
+      return
+    }
+
+    if (!Number.isInteger(days) || days < 1 || days > 90) {
+      setError('Expiration must be between 1 and 90 days.')
+      return
+    }
+
+    if (!token) {
+      setError('Your session is missing. Please sign in again.')
+      return
+    }
+
+    setCreating(true)
+
+    try {
+      const result = await apiRequest<CreatedInvitation>('/invitations/', {
+        method: 'POST',
+        token,
+        body: {
+          role,
+          email: targetEmail.trim() ? targetEmail.trim() : null,
+          max_uses: unlimited ? null : uses,
+          expires_in_days: days,
+        },
+      })
+
+      setCreated(result)
+      setNotice('Invitation created successfully and email dispatched if specified.')
+      setTargetEmail('')
+      await loadInvitations()
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not create invitation.',
+      )
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  async function handleCopy() {
+    if (!created) return
+
+    const url = new URL('/invite', window.location.origin)
+    url.searchParams.set('token', created.invitation_token)
+
+    try {
+      await navigator.clipboard.writeText(url.toString())
+      setCopied(true)
+      setNotice('Invitation link copied.')
+    } catch {
+      setError('Could not copy automatically. Copy the link from the field.')
+    }
+  }
+
+  async function handleRevoke(invitationId: number) {
+    if (!token) {
+      setError('Your session is missing. Please sign in again.')
+      return
+    }
+
+    setError('')
+    setNotice('')
+    setRevokingId(invitationId)
+
+    try {
+      await apiRequest(`/invitations/${invitationId}/revoke`, {
+        method: 'POST',
+        token,
+      })
+
+      setNotice('Invitation revoked.')
+      await loadInvitations()
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not revoke invitation.',
+      )
+    } finally {
+      setRevokingId(null)
+    }
   }
 
   return (
-    <main className="invitation-registration-page">
-      <section className="invitation-registration-card">
-        <div className="registration-brand">
-          <div className="registration-brand-icon">
-            <Link2 size={23} />
-          </div>
-          <div>
-            <h1>Northstar</h1>
-            <p>HR Management Platform</p>
-          </div>
+    <div className="invitations-page">
+      <section className="invitation-intro">
+        <div className="invitation-intro-icon">
+          <Link2 size={22} />
         </div>
-
-        <div className="registration-heading">
-          <div className="registration-shield">
-            <ShieldCheck size={25} />
-          </div>
-          <p className="registration-eyebrow">TEAM INVITATION</p>
-          <h2>Join your workspace</h2>
+        <div>
+          <h2>Invite people to your workspace</h2>
           <p>
-            Create your account using the invitation link you received.
+            Create secure invitation links with a fixed role, optional email binding,
+            usage limit, and expiration date.
           </p>
         </div>
+      </section>
 
-        <form className="invitation-registration-form" onSubmit={handleSubmit}>
-          <label htmlFor="registration-name">Full name</label>
-          <input
-            id="registration-name"
-            type="text"
-            autoComplete="name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Enter your full name"
-            maxLength={150}
-            required
-          />
+      {error && <p className="invitation-message error" role="alert">{error}</p>}
+      {notice && <p className="invitation-message success" role="status">{notice}</p>}
 
-          <label htmlFor="registration-email">Email address</label>
-          <input
-            id="registration-email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@company.com"
-            required
-          />
+      <section className="invitation-panel">
+        <div className="invitation-panel-heading">
+          <div>
+            <h2>Create an invitation</h2>
+            <p>Assign a role and optional recipient email address.</p>
+          </div>
+          <ShieldCheck size={22} />
+        </div>
 
-          <label htmlFor="registration-password">Password</label>
-          <input
-            id="registration-password"
-            type="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 8 characters"
-            minLength={8}
-            maxLength={128}
-            required
-          />
+        <form className="invitation-form" onSubmit={handleCreate}>
+          <div className="invitation-field">
+            <label htmlFor="invite-role">Role</label>
+            <select
+              id="invite-role"
+              value={role}
+              onChange={(event) => setRole(event.target.value)}
+            >
+              <option value="EMPLOYEE">Employee</option>
+              <option value="MANAGER">Manager</option>
+              <option value="HR">HR</option>
+            </select>
+          </div>
 
-          <label htmlFor="registration-confirm-password">
-            Confirm password
+          <div className="invitation-field">
+            <label htmlFor="invite-email">Recipient email (optional)</label>
+            <input
+              id="invite-email"
+              type="email"
+              value={targetEmail}
+              onChange={(event) => setTargetEmail(event.target.value)}
+              placeholder="employee@company.com (leave blank for open link)"
+            />
+          </div>
+
+          <div className="invitation-field">
+            <label htmlFor="invite-expiry">Expires in</label>
+            <select
+              id="invite-expiry"
+              value={expiryDays}
+              onChange={(event) => setExpiryDays(event.target.value)}
+            >
+              <option value="1">1 day</option>
+              <option value="3">3 days</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+              <option value="90">90 days</option>
+            </select>
+          </div>
+
+          <div className="invitation-field">
+            <label htmlFor="invite-uses">Maximum registrations</label>
+            <input
+              id="invite-uses"
+              type="number"
+              min="1"
+              value={maxUses}
+              disabled={unlimited}
+              onChange={(event) => setMaxUses(event.target.value)}
+              required={!unlimited}
+            />
+          </div>
+
+          <label className="invitation-checkbox">
+            <input
+              type="checkbox"
+              checked={unlimited}
+              onChange={(event) => setUnlimited(event.target.checked)}
+            />
+            Allow unlimited registrations
           </label>
-          <input
-            id="registration-confirm-password"
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Enter your password again"
-            minLength={8}
-            maxLength={128}
-            required
-          />
 
-          {error && (
-            <p className="registration-message error" role="alert">
-              {error}
-            </p>
-          )}
-
-          {success && (
-            <p className="registration-message success" role="status">
-              {success}
-            </p>
-          )}
-
-          <button type="submit" disabled={loading || !token}>
-            {loading ? 'Creating account...' : 'Create my account'}
+          <button className="invitation-primary-button" type="submit" disabled={creating}>
+            {creating ? <LoaderCircle className="invitation-spinner" size={17} /> : <Link2 size={17} />}
+            {creating ? 'Creating...' : 'Create invitation link'}
           </button>
         </form>
 
-        <p className="registration-login-link">
-          Already have an account? <a href="/">Sign in</a>
-        </p>
-
-        <p className="registration-footer">
-          Your role and company membership are determined by your invitation.
-        </p>
+        {created && (
+          <div className="created-invitation">
+            <h3>Invitation ready</h3>
+            <p>
+              Role: <strong>{created.role}</strong> {created.email ? `· For: ${created.email}` : ''} · Expires:{' '}
+              {new Date(created.expires_at).toLocaleString()}
+            </p>
+            <div className="invitation-link-row">
+              <input
+                aria-label="Generated invitation link"
+                readOnly
+                value={(() => {
+                  const url = new URL('/invite', window.location.origin)
+                  url.searchParams.set('token', created.invitation_token)
+                  return url.toString()
+                })()}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+              <button type="button" onClick={handleCopy}>
+                <Copy size={16} />
+                {copied ? 'Copied' : 'Copy link'}
+              </button>
+            </div>
+            <p className="invitation-security-note">
+              {created.email 
+                ? 'An email has been dispatched to the recipient. Only that email address can register using this link.'
+                : 'Anyone with this link can register until it expires, is revoked, or reaches its usage limit.'}
+            </p>
+          </div>
+        )}
       </section>
-    </main>
+
+      <section className="invitation-panel">
+        <div className="invitation-panel-heading">
+          <div>
+            <h2>Invitation links</h2>
+            <p>Review usage, expiration, recipient binding, and status.</p>
+          </div>
+          <button
+            className="invitation-refresh-button"
+            type="button"
+            onClick={() => void loadInvitations()}
+            disabled={loading}
+            aria-label="Refresh invitations"
+          >
+            <RefreshCw size={17} />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="invitation-empty">
+            <LoaderCircle className="invitation-spinner" size={22} />
+            <p>Loading invitations...</p>
+          </div>
+        ) : invitations.length === 0 ? (
+          <div className="invitation-empty">
+            <Link2 size={25} />
+            <h3>No invitations yet</h3>
+            <p>Create your first invitation link above.</p>
+          </div>
+        ) : (
+          <div className="invitation-table-wrap">
+            <table className="invitation-table">
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th>Recipient</th>
+                  <th>Usage</th>
+                  <th>Expires</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invitations.map((invitation) => (
+                  <tr key={invitation.id}>
+                    <td>
+                      <strong>{invitation.role}</strong>
+                    </td>
+                    <td>{invitation.email ?? <span className="invitation-unavailable">Open link</span>}</td>
+                    <td>
+                      {invitation.uses_count} / {invitation.max_uses ?? 'Unlimited'}
+                    </td>
+                    <td>{new Date(invitation.expires_at).toLocaleDateString()}</td>
+                    <td>
+                      <span className={`invitation-status ${invitation.status.toLowerCase()}`}>
+                        {invitation.status}
+                      </span>
+                    </td>
+                    <td>
+                      {invitation.status === 'PENDING' ? (
+                        <button
+                          className="invitation-revoke-button"
+                          type="button"
+                          disabled={revokingId === invitation.id}
+                          onClick={() => void handleRevoke(invitation.id)}
+                        >
+                          <XCircle size={15} />
+                          {revokingId === invitation.id ? 'Revoking...' : 'Revoke'}
+                        </button>
+                      ) : (
+                        <span className="invitation-unavailable">Unavailable</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
   )
 }

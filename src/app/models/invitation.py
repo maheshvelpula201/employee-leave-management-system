@@ -1,6 +1,7 @@
+# src/app/models/invitation.py
+
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
-
 from src.app.db.database import Base
 
 
@@ -19,14 +20,13 @@ class Invitation(Base):
         nullable=False
     )
 
-    # Reusable invitation links do not require a predefined email.
+    # Optional targeted email binding. Nullable for reusable open links.
     email = Column(
         String,
         nullable=True,
         index=True
     )
 
-    # The role is fixed when the invitation is created.
     role = Column(
         String,
         nullable=False
@@ -45,13 +45,11 @@ class Invitation(Base):
         default="PENDING"
     )
 
-    # NULL means unlimited uses.
     max_uses = Column(
         Integer,
         nullable=True
     )
 
-    # Number of successful registrations through this link.
     uses_count = Column(
         Integer,
         nullable=False,
@@ -59,14 +57,12 @@ class Invitation(Base):
         server_default="0"
     )
 
-    # User who generated the invitation.
     created_by = Column(
         Integer,
         ForeignKey("users.id"),
         nullable=True
     )
 
-    # Set when an administrator revokes the invitation.
     revoked_at = Column(
         DateTime,
         nullable=True

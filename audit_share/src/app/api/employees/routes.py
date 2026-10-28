@@ -1,0 +1,513 @@
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from src.app.db.database import get_db
+from src.app.models.employes import Employee
+from src.app.models.hr import HR
+
+from src.app.core.rbac import Permission
+from src.app.core.rbac_dependencies import require_permission
+
+from src.app.schemas.employee import (
+    EmployeeCreate,
+    EmployeeUpdate,
+    EmployeeExit,
+)
+
+from src.app.repositories.employee_history import create_employee_history
+from src.app.services.employee_history import get_employee_history_service
+from src.app.core.dependencies import get_current_user
+
+
+router = APIRouter(
+    prefix="/employees",
+    tags=["Employees"],
+)
+
+
+def get_company_employee(
+    db: Session,
+    employee_id: int,
+    company_id: int,
+):
+    return (
+        db.query(Employee)
+        .filter(
+            Employee.id == employee_id,
+            Employee.company_id == company_id,
+        )
+        .first()
+    )
+
+
+@router.post("/")
+def create_employee(
+    employee: EmployeeCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.CREATE_EMPLOYEE)
+    ),
+):
+    new_employee = Employee(
+        name=employee.name,
+        email=str(employee.email),
+        department=employee.department,
+        designation=employee.designation,
+        floor=employee.floor,
+        joining_date=employee.joining_date,
+        leaving_date=employee.leaving_date,
+        termination_reason=employee.termination_reason,
+        employment_status=employee.employment_status,
+        phone=employee.phone,
+        emergency_contact_name=employee.emergency_contact_name,
+        emergency_contact_phone=employee.emergency_contact_phone,
+        manager_id=employee.manager_id,
+        company_id=current_user.company_id,
+    )
+
+    db.add(new_employee)
+
+    try:
+        db.commit()
+        db.refresh(new_employee)
+    except Exception:
+        db.rollback()
+        raise
+
+    return new_employee
+
+
+@router.get("/")
+def get_all_employees(
+    department: str | None = None,
+    floor: str | None = None,
+    employment_status: str | None = None,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.VIEW_EMPLOYEES)
+    ),
+):
+    query = db.query(Employee).filter(
+        Employee.company_id == current_user.company_id
+    )
+
+    if department:
+        query = query.filter(Employee.department == department)
+
+    if floor:
+        query = query.filter(Employee.floor == floor)
+
+    if employment_status:
+        query = query.filter(
+            Employee.employment_status == employment_status.upper()
+        )
+
+    return query.order_by(Employee.name.asc()).all()
+
+
+@router.get("/{employee_id}")
+def get_employee(
+    employee_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.VIEW_EMPLOYEES)
+    ),
+):
+    employee = get_company_employee(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found",
+        )
+
+    return employee
+
+
+@router.put("/{employee_id}")
+def update_employee(
+    employee_id: int,
+    employee_data: EmployeeUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.UPDATE_EMPLOYEE)
+    ),
+):
+    employee = get_company_employee(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found",
+        )
+
+    update_data = employee_data.model_dump(exclude_unset=True)
+
+    if "email" in update_data:
+        update_data["email"] = str(update_data["email"])
+
+        existing_employee = (
+            db.query(Employee)
+            .filter(
+                Employee.email == update_data["email"],
+                Employee.id != employee_id,
+            )
+            .first()
+        )
+
+        if existing_employee:
+            raise HTTPException(
+                status_code=400,
+                detail="Employee with this email already exists",
+            )
+
+    for field, value in update_data.items():
+        setattr(employee, field, value)
+
+    try:
+        db.commit()
+        db.refresh(employee)
+    except Exception:
+        db.rollback()
+        raise
+
+    return employee
+
+
+@router.patch("/{employee_id}/manager")
+def assign_manager(
+    employee_id: int,
+    manager_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.ASSIGN_EMPLOYEE_MANAGER)
+    ),
+):
+    employee = get_company_employee(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found",
+        )
+
+    manager = get_company_employee(
+        db,
+        manager_id,
+        current_user.company_id,
+    )
+
+    if not manager:
+        raise HTTPException(
+            status_code=404,
+            detail="Manager not found",
+        )
+
+    if employee_id == manager_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Employee cannot be their own manager",
+        )
+
+    employee.manager_id = manager_id
+
+    try:
+        db.commit()
+        db.refresh(employee)
+    except Exception:
+        db.rollback()
+        raise
+
+    return employee
+
+
+@router.patch("/{employee_id}/hr")
+def assign_hr(
+    employee_id: int,
+    hr_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.ASSIGN_EMPLOYEE_HR)
+    ),
+):
+    employee = get_company_employee(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found",
+        )
+
+    hr = (
+        db.query(HR)
+        .filter(
+            HR.id == hr_id,
+            HR.company_id == current_user.company_id,
+        )
+        .first()
+    )
+
+    if not hr:
+        raise HTTPException(
+            status_code=404,
+            detail="HR not found",
+        )
+
+    employee.hr_id = hr_id
+
+    try:
+        db.commit()
+        db.refresh(employee)
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "message": "HR assigned successfully",
+        "employee_id": employee.id,
+        "hr_id": employee.hr_id,
+    }
+
+
+@router.patch("/{employee_id}/status")
+def update_employee_status(
+    employee_id: int,
+    status: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.MANAGE_EMPLOYEE_STATUS)
+    ),
+):
+    employee = get_company_employee(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found",
+        )
+
+    status = status.upper()
+
+    if status not in {"ACTIVE", "INACTIVE"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Status must be ACTIVE or INACTIVE",
+        )
+
+    old_status = employee.employment_status
+    employee.employment_status = status
+
+    try:
+        db.commit()
+        db.refresh(employee)
+
+        create_employee_history(
+            db=db,
+            employee_id=employee.id,
+            action="STATUS_CHANGED",
+            old_value=old_status,
+            new_value=status,
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "message": "Employee status updated successfully",
+        "employee_id": employee.id,
+        "old_status": old_status,
+        "new_status": employee.employment_status,
+    }
+
+
+@router.patch("/{employee_id}/exit")
+def employee_exit(
+    employee_id: int,
+    exit_data: EmployeeExit,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.MANAGE_EMPLOYEE_EXIT)
+    ),
+):
+    employee = get_company_employee(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found",
+        )
+
+    if employee.employment_status == "INACTIVE":
+        raise HTTPException(
+            status_code=400,
+            detail="Employee is already inactive",
+        )
+
+    old_status = employee.employment_status
+    employee.employment_status = "INACTIVE"
+    employee.leaving_date = exit_data.leaving_date
+    employee.termination_reason = exit_data.termination_reason
+
+    try:
+        db.commit()
+        db.refresh(employee)
+
+        create_employee_history(
+            db=db,
+            employee_id=employee.id,
+            action="EMPLOYEE_EXIT",
+            old_value=old_status,
+            new_value="INACTIVE",
+        )
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "message": "Employee exit processed successfully",
+        "employee_id": employee.id,
+        "employment_status": employee.employment_status,
+        "leaving_date": employee.leaving_date,
+        "termination_reason": employee.termination_reason,
+    }
+
+
+@router.get("/{employee_id}/history")
+def get_employee_history(
+    employee_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_permission(Permission.VIEW_EMPLOYEES)
+    ),
+):
+    employee = get_company_employee(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found",
+        )
+
+    return get_employee_history_service(
+        db,
+        employee_id,
+        current_user.company_id,
+    )
+    
+@router.get("/me/profile")
+def get_my_profile(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    employee = (
+        db.query(Employee)
+        .filter(
+            Employee.email == current_user.email,
+            Employee.company_id == current_user.company_id,
+        )
+        .first()
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee profile record not found",
+        )
+
+    return {
+        "employee_id": employee.id,
+        "name": employee.name,
+        "email": employee.email,
+        "department": employee.department,
+        "designation": employee.designation,
+        "floor": employee.floor,
+        "joining_date": employee.joining_date,
+        "phone": employee.phone,
+        "emergency_contact_name": employee.emergency_contact_name,
+        "emergency_contact_phone": employee.emergency_contact_phone,
+        "employment_status": employee.employment_status,
+    }
+
+
+@router.put("/me/profile")
+def update_my_profile(
+    profile_data: EmployeeUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    employee = (
+        db.query(Employee)
+        .filter(
+            Employee.email == current_user.email,
+            Employee.company_id == current_user.company_id,
+        )
+        .first()
+    )
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee profile record not found",
+        )
+
+    update_data = profile_data.model_dump(
+        exclude_unset=True,
+        exclude={
+            "email",
+            "leaving_date",
+            "termination_reason",
+        },
+    )
+
+    for field, value in update_data.items():
+        setattr(employee, field, value)
+
+    try:
+        db.commit()
+        db.refresh(employee)
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "message": "Profile saved successfully",
+        "employee_id": employee.id,
+        "name": employee.name,
+        "email": employee.email,
+        "department": employee.department,
+        "designation": employee.designation,
+        "floor": employee.floor,
+        "joining_date": employee.joining_date,
+        "phone": employee.phone,
+        "emergency_contact_name": employee.emergency_contact_name,
+        "emergency_contact_phone": employee.emergency_contact_phone,
+    }

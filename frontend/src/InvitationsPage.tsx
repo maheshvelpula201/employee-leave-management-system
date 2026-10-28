@@ -1,3 +1,4 @@
+// frontend/src/InvitationsPage.tsx
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Copy, Link2, LoaderCircle, RefreshCw, ShieldCheck, XCircle } from 'lucide-react'
@@ -8,6 +9,7 @@ import './InvitationsPage.css'
 type Invitation = {
   id: number
   company_id: number
+  email: string | null
   role: string
   status: string
   max_uses: number | null
@@ -16,25 +18,33 @@ type Invitation = {
   revoked_at: string | null
   expires_at: string
   created_at: string
+  human_status: string
+  remaining_time_display: string
+  remaining_uses_display: string
 }
 
 type CreatedInvitation = {
   invitation_id: number
   company_id: number
+  email: string | null
   role: string
   status: string
   max_uses: number | null
   uses_count: number
   expires_at: string
   invitation_token: string
+  human_status: string
+  remaining_time_display: string
+  remaining_uses_display: string
 }
 
 export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([])
   const [role, setRole] = useState('EMPLOYEE')
+  const [targetEmail, setTargetEmail] = useState('')
   const [unlimited, setUnlimited] = useState(false)
   const [maxUses, setMaxUses] = useState('3')
-  const [expiryDays, setExpiryDays] = useState('3')
+  const [expiryDays, setExpiryDays] = useState('1') // Default 24 hours
   const [created, setCreated] = useState<CreatedInvitation | null>(null)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -80,15 +90,9 @@ export default function InvitationsPage() {
     setCreated(null)
 
     const uses = Number(maxUses)
-    const days = Number(expiryDays)
 
     if (!unlimited && (!Number.isInteger(uses) || uses < 1)) {
       setError('Enter a valid usage limit of at least 1.')
-      return
-    }
-
-    if (!Number.isInteger(days) || days < 1 || days > 90) {
-      setError('Expiration must be between 1 and 90 days.')
       return
     }
 
@@ -105,13 +109,15 @@ export default function InvitationsPage() {
         token,
         body: {
           role,
+          email: targetEmail.trim() ? targetEmail.trim() : null,
           max_uses: unlimited ? null : uses,
-          expires_in_days: days,
+          expires_in_days: 1, // Enforced 24 hours on backend
         },
       })
 
       setCreated(result)
-      setNotice('Invitation created. Copy the link below to share it.')
+      setNotice('Invitation link created successfully (expires in 24 hours).')
+      setTargetEmail('')
       await loadInvitations()
     } catch (err) {
       setError(
@@ -164,10 +170,6 @@ export default function InvitationsPage() {
     }
   }
 
-  function invitationUrl(invitation: Invitation) {
-    return invitation.status === 'PENDING' ? 'Active link' : 'Unavailable'
-  }
-
   return (
     <div className="invitations-page">
       <section className="invitation-intro">
@@ -177,8 +179,8 @@ export default function InvitationsPage() {
         <div>
           <h2>Invite people to your workspace</h2>
           <p>
-            Create secure invitation links with a fixed role, usage limit,
-            and expiration date.
+            Secure invitation links automatically expire in exactly 24 hours. Assign roles,
+            optional email binding, and usage limits.
           </p>
         </div>
       </section>
@@ -190,7 +192,7 @@ export default function InvitationsPage() {
         <div className="invitation-panel-heading">
           <div>
             <h2>Create an invitation</h2>
-            <p>The assigned role cannot be changed during registration.</p>
+            <p>Links are valid for 24 hours from creation.</p>
           </div>
           <ShieldCheck size={22} />
         </div>
@@ -210,19 +212,14 @@ export default function InvitationsPage() {
           </div>
 
           <div className="invitation-field">
-            <label htmlFor="invite-expiry">Expires in</label>
-            <select
-              id="invite-expiry"
-              value={expiryDays}
-              onChange={(event) => setExpiryDays(event.target.value)}
-            >
-              <option value="1">1 day</option>
-              <option value="3">3 days</option>
-              <option value="7">7 days</option>
-              <option value="14">14 days</option>
-              <option value="30">30 days</option>
-              <option value="90">90 days</option>
-            </select>
+            <label htmlFor="invite-email">Recipient email (optional)</label>
+            <input
+              id="invite-email"
+              type="email"
+              value={targetEmail}
+              onChange={(event) => setTargetEmail(event.target.value)}
+              placeholder="employee@company.com (leave blank for open link)"
+            />
           </div>
 
           <div className="invitation-field">
@@ -249,15 +246,15 @@ export default function InvitationsPage() {
 
           <button className="invitation-primary-button" type="submit" disabled={creating}>
             {creating ? <LoaderCircle className="invitation-spinner" size={17} /> : <Link2 size={17} />}
-            {creating ? 'Creating...' : 'Create invitation link'}
+            {creating ? 'Creating...' : 'Create 24-hour invitation link'}
           </button>
         </form>
 
         {created && (
           <div className="created-invitation">
-            <h3>Invitation ready</h3>
+            <h3>Invitation ready (24-hour validity)</h3>
             <p>
-              Role: <strong>{created.role}</strong> · Expires:{' '}
+              Role: <strong>{created.role}</strong> {created.email ? `· For: ${created.email}` : ''} · Expires:{' '}
               {new Date(created.expires_at).toLocaleString()}
             </p>
             <div className="invitation-link-row">
@@ -277,8 +274,7 @@ export default function InvitationsPage() {
               </button>
             </div>
             <p className="invitation-security-note">
-              Anyone with this link can register until it expires, is revoked,
-              or reaches its usage limit. Share it only with the intended people.
+              This link expires in 24 hours. {created.email ? 'Restricted to the recipient email address.' : 'Share securely.'}
             </p>
           </div>
         )}
@@ -288,7 +284,7 @@ export default function InvitationsPage() {
         <div className="invitation-panel-heading">
           <div>
             <h2>Invitation links</h2>
-            <p>Review usage, expiration, and current status.</p>
+            <p>Review usage counts, remaining time, and human-readable status.</p>
           </div>
           <button
             className="invitation-refresh-button"
@@ -317,9 +313,10 @@ export default function InvitationsPage() {
             <table className="invitation-table">
               <thead>
                 <tr>
-                  <th>Role</th>
-                  <th>Usage</th>
-                  <th>Expires</th>
+                  <th>Category / Role</th>
+                  <th>Recipient</th>
+                  <th>Joined / Usage</th>
+                  <th>Remaining Time</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -330,17 +327,18 @@ export default function InvitationsPage() {
                     <td>
                       <strong>{invitation.role}</strong>
                     </td>
+                    <td>{invitation.email ?? <span className="invitation-unavailable">Open link</span>}</td>
                     <td>
-                      {invitation.uses_count} / {invitation.max_uses ?? 'Unlimited'}
+                      {invitation.uses_count} joined ({invitation.remaining_uses_display})
                     </td>
-                    <td>{new Date(invitation.expires_at).toLocaleDateString()}</td>
+                    <td>{invitation.remaining_time_display}</td>
                     <td>
-                      <span className={`invitation-status ${invitation.status.toLowerCase()}`}>
-                        {invitation.status}
+                      <span className={`invitation-status ${invitation.human_status.toLowerCase().replace(/\s+/g, '-')}`}>
+                        {invitation.human_status}
                       </span>
                     </td>
                     <td>
-                      {invitation.status === 'PENDING' ? (
+                      {invitation.human_status === 'Active' ? (
                         <button
                           className="invitation-revoke-button"
                           type="button"
@@ -351,7 +349,7 @@ export default function InvitationsPage() {
                           {revokingId === invitation.id ? 'Revoking...' : 'Revoke'}
                         </button>
                       ) : (
-                        <span className="invitation-unavailable">{invitationUrl(invitation)}</span>
+                        <span className="invitation-unavailable">Unavailable</span>
                       )}
                     </td>
                   </tr>

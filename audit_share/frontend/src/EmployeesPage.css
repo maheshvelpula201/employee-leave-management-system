@@ -1,0 +1,369 @@
+
+.employees-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: #172033;
+}
+
+.employees-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.employees-eyebrow {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 1.5px;
+}
+
+.employees-heading h1 {
+  margin: 0;
+  font-size: clamp(25px, 3vw, 32px);
+  letter-spacing: -0.8px;
+}
+
+.employees-subtitle {
+  max-width: 660px;
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.employees-refresh-button,
+.employees-state button,
+.employees-message button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #263449;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.employees-refresh-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.employees-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.employees-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #e6eaf0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.employees-summary-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.employees-summary-icon.total {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.employees-summary-icon.active {
+  background: #e8f8ef;
+  color: #16834a;
+}
+
+.employees-summary-icon.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.employees-summary-card p {
+  margin: 0 0 5px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.employees-summary-card strong {
+  font-size: 25px;
+  letter-spacing: -0.5px;
+}
+
+.employees-directory-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e6eaf0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.employees-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.employees-panel-heading h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.employees-panel-heading p {
+  margin: 6px 0 0;
+  color: #748094;
+  font-size: 12px;
+}
+
+.employees-toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.employees-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid #dfe5ed;
+  border-radius: 10px;
+  color: #8490a2;
+}
+
+.employees-search input {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172033;
+  font: inherit;
+  font-size: 13px;
+}
+
+.employees-status-filter {
+  min-width: 145px;
+  padding: 0 12px;
+  border: 1px solid #dfe5ed;
+  border-radius: 10px;
+  background: #fff;
+  color: #344256;
+  font: inherit;
+  font-size: 13px;
+}
+
+.employees-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.employees-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.employees-table th {
+  padding: 14px 20px;
+  background: #f8fafc;
+  color: #6b778b;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.employees-table td {
+  padding: 17px 20px;
+  border-top: 1px solid #edf0f4;
+  color: #445166;
+  font-size: 12px;
+}
+
+.employees-table tbody tr:hover {
+  background: #fbfcfe;
+}
+
+.employees-person {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.employees-avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.employees-person-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.employees-person-details strong {
+  color: #202b3d;
+  font-size: 13px;
+}
+
+.employees-person-details span,
+.employees-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #748094;
+  font-size: 12px;
+}
+
+.employees-person-details small {
+  color: #9aa4b2;
+  font-size: 10px;
+}
+
+.employees-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.employees-status.active {
+  background: #e8f8ef;
+  color: #16834a;
+}
+
+.employees-status.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.employees-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.employees-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 230px;
+  padding: 28px;
+  color: #8a96a7;
+  text-align: center;
+}
+
+.employees-state h3 {
+  margin: 4px 0 0;
+  color: #29364a;
+  font-size: 16px;
+}
+
+.employees-state p {
+  max-width: 430px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.employees-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 24px 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.employees-message.error {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.employees-message button {
+  margin-left: auto;
+  min-height: 32px;
+  border-color: #fecdd3;
+  color: #9f1239;
+}
+
+.employees-spinner {
+  animation: employees-spin 1s linear infinite;
+}
+
+@keyframes employees-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .employees-heading {
+    flex-direction: column;
+  }
+
+  .employees-summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .employees-summary-card {
+    padding: 15px;
+  }
+
+  .employees-toolbar {
+    flex-direction: column;
+    padding: 14px;
+  }
+
+  .employees-status-filter {
+    min-height: 42px;
+  }
+
+  .employees-panel-heading {
+    padding: 18px 16px;
+  }
+}

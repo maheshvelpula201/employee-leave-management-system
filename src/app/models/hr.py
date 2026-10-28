@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
+# src/app/models/hr.py
 
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.sql import func
 from src.app.db.database import Base
 
 
@@ -13,6 +14,12 @@ class HR(Base):
         index=True
     )
 
+    company_id = Column(
+        Integer,
+        ForeignKey("companies.id"),
+        nullable=False
+    )
+
     name = Column(
         String,
         nullable=False
@@ -21,21 +28,23 @@ class HR(Base):
     email = Column(
         String,
         unique=True,
-        nullable=False,
-        index=True
-    )
-
-    company_id = Column(
-        Integer,
-        ForeignKey("companies.id"),
+        index=True,
         nullable=False
     )
 
-    employees = relationship(
-        "Employee",
-        back_populates="hr"
+    phone = Column(
+        String,
+        nullable=True
     )
 
-    company = relationship(
-        "Company"
+    joining_date = Column(
+        DateTime,
+        nullable=True,
+        server_default=func.now()
+    )
+
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now()
     )

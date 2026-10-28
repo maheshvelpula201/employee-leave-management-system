@@ -1,5 +1,6 @@
-from datetime import datetime
+# src/app/schemas/invitation.py
 
+from datetime import datetime
 from pydantic import (
     BaseModel,
     EmailStr,
@@ -11,16 +12,13 @@ from pydantic import (
 
 class InvitationCreate(BaseModel):
     role: str = Field(min_length=1, max_length=50)
-
-    # None means unlimited uses.
+    email: EmailStr | None = Field(default=None)
     max_uses: int | None = Field(
         default=None,
         ge=1,
     )
-
-    # Number of days until the invitation expires.
     expires_in_days: int = Field(
-        default=3,
+        default=1,
         ge=1,
         le=90,
     )
@@ -38,6 +36,11 @@ class InvitationResponse(BaseModel):
     revoked_at: datetime | None
     expires_at: datetime
     created_at: datetime
+    
+    # Human-readable fields for frontend display
+    human_status: str
+    remaining_time_display: str
+    remaining_uses_display: str
 
     model_config = ConfigDict(
         from_attributes=True

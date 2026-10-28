@@ -1,318 +1,179 @@
+// frontend/src/EmployeesPage.tsx
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  RefreshCw,
-  Search,
-  Users,
-  UserRound,
-  Mail,
-  Building2,
-  BriefcaseBusiness,
-  LoaderCircle,
-  AlertCircle,
-} from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { LoaderCircle, RefreshCw, Search, Users, Shield, Briefcase } from 'lucide-react'
 import { apiRequest } from './lib/api'
 import { getAccessToken } from './lib/auth'
 import './EmployeesPage.css'
 
-type Employee = {
+type StaffMember = {
   id: number
+  user_id: number | null
   name: string
   email: string
-  department: string
+  employee_id: string | null
+  department: string | null
   designation: string | null
-  employment_status: string
+  phone: string | null
+  category: 'Employee' | 'Manager' | 'HR'
+  employment_status: string | null
   joining_date: string | null
-  manager_id: number | null
 }
 
-type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE'
-
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
+  const [staff, setStaff] = useState<StaffMember[]>([])
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
 
-  const loadEmployees = useCallback(async (manualRefresh = false) => {
-    const token = getAccessToken()
+  const token = getAccessToken()
 
+  const loadStaff = useCallback(async () => {
     if (!token) {
-      setError('Your session is missing. Please sign in again.')
+      setError('Session missing. Please sign in again.')
       setLoading(false)
-      setRefreshing(false)
       return
     }
 
-    if (manualRefresh) {
-      setRefreshing(true)
-    } else {
-      setLoading(true)
-    }
-
+    setLoading(true)
     setError('')
 
     try {
-      const data = await apiRequest<Employee[]>('/employees/', { token })
+      const queryParams = new URLSearchParams()
+      if (categoryFilter) queryParams.set('category', categoryFilter)
+      if (search.trim()) queryParams.set('search', search.trim())
+      if (departmentFilter.trim()) queryParams.set('department', departmentFilter.trim())
 
-      if (!Array.isArray(data)) {
-        throw new Error('The server returned an unexpected employee list.')
-      }
-
-      setEmployees(data)
+      const endpoint = `/staff/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const data = await apiRequest<StaffMember[]>(endpoint, { token })
+      setStaff(data)
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Could not load employees. Please try again.',
-      )
+      setError(err instanceof Error ? err.message : 'Could not load staff directory.')
     } finally {
       setLoading(false)
-      setRefreshing(false)
     }
-  }, [])
+  }, [token, categoryFilter, search, departmentFilter])
 
   useEffect(() => {
-    void loadEmployees()
-  }, [loadEmployees])
-
-  const filteredEmployees = useMemo(() => {
-    const query = search.trim().toLowerCase()
-
-    return employees.filter((employee) => {
-      const matchesSearch =
-        !query ||
-        employee.name.toLowerCase().includes(query) ||
-        employee.email.toLowerCase().includes(query) ||
-        employee.department.toLowerCase().includes(query) ||
-        (employee.designation ?? '').toLowerCase().includes(query)
-
-      const status = (employee.employment_status || 'ACTIVE').toUpperCase()
-      const matchesStatus =
-        statusFilter === 'ALL' || status === statusFilter
-
-      return matchesSearch && matchesStatus
-    })
-  }, [employees, search, statusFilter])
-
-  const activeCount = employees.filter(
-    (employee) =>
-      (employee.employment_status || 'ACTIVE').toUpperCase() === 'ACTIVE',
-  ).length
-
-  const inactiveCount = employees.filter(
-    (employee) =>
-      (employee.employment_status || '').toUpperCase() === 'INACTIVE',
-  ).length
+    void loadStaff()
+  }, [loadStaff])
 
   return (
-    <main className="employees-page">
-      <section className="employees-heading">
+    <div className="employees-page">
+      <section className="employees-header">
+        <div className="employees-header-icon">
+          <Users size={24} />
+        </div>
         <div>
-          <p className="employees-eyebrow">PEOPLE MANAGEMENT</p>
-          <h1>Employee directory</h1>
-          <p className="employees-subtitle">
-            View and find the employees and managers in your company.
-            Records are loaded from your company database.
-          </p>
+          <h2>Company Staff Directory</h2>
+          <p>View, search, and manage all real employee, manager, and HR profiles in your workspace.</p>
         </div>
-
-        <button
-          className="employees-refresh-button"
-          type="button"
-          onClick={() => void loadEmployees(true)}
-          disabled={loading || refreshing}
-        >
-          {refreshing ? (
-            <LoaderCircle className="employees-spinner" size={17} />
-          ) : (
-            <RefreshCw size={17} />
-          )}
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </button>
       </section>
 
-      <section className="employees-summary" aria-label="Employee totals">
-        <article className="employees-summary-card">
-          <div className="employees-summary-icon total">
-            <Users size={21} />
-          </div>
-          <div>
-            <p>Total records</p>
-            <strong>{loading ? '—' : employees.length}</strong>
-          </div>
-        </article>
+      {error && <p className="employees-message error" role="alert">{error}</p>}
 
-        <article className="employees-summary-card">
-          <div className="employees-summary-icon active">
-            <UserRound size={21} />
-          </div>
-          <div>
-            <p>Active</p>
-            <strong>{loading ? '—' : activeCount}</strong>
-          </div>
-        </article>
-
-        <article className="employees-summary-card">
-          <div className="employees-summary-icon inactive">
-            <Users size={21} />
-          </div>
-          <div>
-            <p>Inactive</p>
-            <strong>{loading ? '—' : inactiveCount}</strong>
-          </div>
-        </article>
-      </section>
-
-      <section className="employees-directory-panel">
-        <div className="employees-panel-heading">
-          <div>
-            <h2>Company people</h2>
-            <p>
-              {loading
-                ? 'Loading company records...'
-                : `${filteredEmployees.length} of ${employees.length} records`}
-            </p>
-          </div>
+      <section className="employees-controls">
+        <div className="search-box">
+          <Search size={18} />
+          <input
+            type="text"
+            placeholder="Search by name, email, ID, or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
 
-        <div className="employees-toolbar">
-          <label className="employees-search">
-            <Search size={18} />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search name, email, department..."
-              aria-label="Search employees"
-            />
-          </label>
-
+        <div className="filter-group">
           <select
-            className="employees-status-filter"
-            value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as StatusFilter)
-            }
-            aria-label="Filter by employment status"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            aria-label="Filter by category"
           >
-            <option value="ALL">All statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
+            <option value="">All Categories</option>
+            <option value="Employee">Employees</option>
+            <option value="Manager">Managers</option>
+            <option value="HR">HR Personnel</option>
           </select>
+
+          <input
+            type="text"
+            placeholder="Filter by department..."
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+          />
+
+          <button
+            className="refresh-btn"
+            type="button"
+            onClick={() => void loadStaff()}
+            disabled={loading}
+            aria-label="Refresh staff list"
+          >
+            <RefreshCw size={17} />
+          </button>
         </div>
+      </section>
 
-        {error && (
-          <div className="employees-message error" role="alert">
-            <AlertCircle size={19} />
-            <span>{error}</span>
-            <button type="button" onClick={() => void loadEmployees(true)}>
-              Try again
-            </button>
-          </div>
-        )}
-
+      <section className="employees-content">
         {loading ? (
-          <div className="employees-state">
-            <LoaderCircle className="employees-spinner" size={28} />
-            <p>Loading employee records...</p>
+          <div className="employees-empty">
+            <LoaderCircle className="spinner" size={26} />
+            <p>Loading staff directory...</p>
           </div>
-        ) : !error && employees.length === 0 ? (
-          <div className="employees-state">
+        ) : staff.length === 0 ? (
+          <div className="employees-empty">
             <Users size={32} />
-            <h3>No employee records yet</h3>
-            <p>
-              When an employee or manager completes registration through an
-              invitation, their employee record will appear here.
-            </p>
+            <h3>No staff members found</h3>
+            <p>Try adjusting your search filters or invite team members to join.</p>
           </div>
-        ) : !error && filteredEmployees.length === 0 ? (
-          <div className="employees-state">
-            <Search size={30} />
-            <h3>No matching records</h3>
-            <p>Try a different search or change the status filter.</p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearch('')
-                setStatusFilter('ALL')
-              }}
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : !error ? (
-          <div className="employees-table-wrap">
+        ) : (
+          <div className="table-wrap">
             <table className="employees-table">
               <thead>
                 <tr>
-                  <th>Employee</th>
+                  <th>Name & Email</th>
+                  <th>ID</th>
+                  <th>Category</th>
                   <th>Department</th>
                   <th>Designation</th>
-                  <th>Joining date</th>
+                  <th>Phone</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredEmployees.map((employee) => {
-                  const status = (
-                    employee.employment_status || 'ACTIVE'
-                  ).toUpperCase()
-
-                  return (
-                    <tr key={employee.id}>
-                      <td>
-                        <div className="employees-person">
-                          <div className="employees-avatar">
-                            {employee.name.trim().charAt(0).toUpperCase() || '?'}
-                          </div>
-                          <div className="employees-person-details">
-                            <strong>{employee.name}</strong>
-                            <span>
-                              <Mail size={13} />
-                              {employee.email}
-                            </span>
-                            <small>Employee ID: {employee.id}</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="employees-detail">
-                          <Building2 size={15} />
-                          {employee.department || 'Not assigned'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="employees-detail">
-                          <BriefcaseBusiness size={15} />
-                          {employee.designation || 'Not assigned'}
-                        </span>
-                      </td>
-                      <td>
-                        {employee.joining_date
-                          ? new Date(
-                              `${employee.joining_date.slice(0, 10)}T00:00:00`,
-                            ).toLocaleDateString()
-                          : '—'}
-                      </td>
-                      <td>
-                        <span
-                          className={`employees-status ${status.toLowerCase()}`}
-                        >
-                          <span className="employees-status-dot" />
-                          {status}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
+                {staff.map((member) => (
+                  <tr key={`${member.category}-${member.id}`}>
+                    <td>
+                      <div className="staff-name-cell">
+                        <strong>{member.name}</strong>
+                        <span>{member.email}</span>
+                      </div>
+                    </td>
+                    <td><code>{member.employee_id ?? 'N/A'}</code></td>
+                    <td>
+                      <span className={`badge category-${member.category.toLowerCase()}`}>
+                        {member.category === 'HR' && <Shield size={13} />}
+                        {member.category === 'Manager' && <Briefcase size={13} />}
+                        {member.category}
+                      </span>
+                    </td>
+                    <td>{member.department || 'Unassigned'}</td>
+                    <td>{member.designation || '—'}</td>
+                    <td>{member.phone || '—'}</td>
+                    <td>
+                      <span className="badge status-active">
+                        {member.employment_status || 'ACTIVE'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        ) : null}
+        )}
       </section>
-    </main>
+    </div>
   )
 }
